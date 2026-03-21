@@ -2,6 +2,7 @@
 
 import { Check, ChevronsUpDown } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 import type { SelectOption } from "@/components/custom/forms/invoice-form-shared";
 
 type SearchableSelectProps = {
@@ -23,7 +24,26 @@ export function SearchableSelect({
 }: SearchableSelectProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [query, setQuery] = useState("");
+  const [menuStyle, setMenuStyle] = useState<{
+    top: number;
+    left: number;
+    width: number;
+  } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
+  const triggerRef = useRef<HTMLButtonElement | null>(null);
+
+  function updateMenuPosition() {
+    if (!triggerRef.current) {
+      return;
+    }
+
+    const rect = triggerRef.current.getBoundingClientRect();
+    setMenuStyle({
+      top: rect.bottom + 4,
+      left: rect.left,
+      width: rect.width,
+    });
+  }
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
@@ -39,6 +59,26 @@ export function SearchableSelect({
     return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, []);
 
+  useEffect(() => {
+    if (!isOpen) {
+      return;
+    }
+
+    updateMenuPosition();
+
+    function handlePositionUpdate() {
+      updateMenuPosition();
+    }
+
+    window.addEventListener("resize", handlePositionUpdate);
+    window.addEventListener("scroll", handlePositionUpdate, true);
+
+    return () => {
+      window.removeEventListener("resize", handlePositionUpdate);
+      window.removeEventListener("scroll", handlePositionUpdate, true);
+    };
+  }, [isOpen]);
+
   const selected = options.find((option) => option.value === value);
   const filteredOptions = options.filter((option) =>
     option.label.toLowerCase().includes(query.toLowerCase()),
@@ -48,9 +88,16 @@ export function SearchableSelect({
     <div ref={containerRef} className="relative">
       <input type="hidden" name={name} value={value} />
       <button
+        ref={triggerRef}
         type="button"
         onClick={() => {
-          setIsOpen((prev) => !prev);
+          setIsOpen((prev) => {
+            const next = !prev;
+            if (next) {
+              updateMenuPosition();
+            }
+            return next;
+          });
           setQuery("");
         }}
         className={`flex w-full items-center justify-between rounded-lg border border-border bg-background px-3 text-left text-sm text-foreground ${
@@ -58,49 +105,62 @@ export function SearchableSelect({
         }`}
       >
         <span
-          className={selected ? "text-foreground" : "text-muted-foreground"}
+          className={
+            selected ? "text-foreground line-clamp-1 " : "text-muted-foreground"
+          }
         >
           {selected?.label || placeholder}
         </span>
         <ChevronsUpDown className="size-4 text-muted-foreground" />
       </button>
 
-      {isOpen && (
-        <div className="absolute z-30 mt-1 w-full rounded-lg border border-border bg-white p-2 shadow-lg">
-          <input
-            value={query}
-            onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search..."
-            className="mb-2 h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
-          />
+      {typeof document !== "undefined" &&
+        isOpen &&
+        menuStyle &&
+        createPortal(
+          <div
+            className="fixed z-50 rounded-lg border border-border bg-white p-2 shadow-lg"
+            style={{
+              top: menuStyle.top,
+              left: menuStyle.left,
+              width: menuStyle.width,
+            }}
+          >
+            <input
+              value={query}
+              onChange={(event) => setQuery(event.target.value)}
+              placeholder="Search..."
+              className="mb-2 h-9 w-full rounded-md border border-border bg-background px-2 text-sm"
+            />
 
-          <div className="max-h-48 overflow-y-auto">
-            {!filteredOptions.length && (
-              <p className="px-2 py-1.5 text-sm text-muted-foreground">
-                No results found.
-              </p>
-            )}
+            <div className="max-h-48 overflow-y-auto">
+              {!filteredOptions.length && (
+                <p className="px-2 py-1.5 text-sm text-muted-foreground">
+                  No results found.
+                </p>
+              )}
 
-            {filteredOptions.map((option) => (
-              <button
-                key={option.value}
-                type="button"
-                onClick={() => {
-                  onChange(option.value);
-                  setIsOpen(false);
-                  setQuery("");
-                }}
-                className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
-              >
-                <span>{option.label}</span>
-                {option.value === value && (
-                  <Check className="size-4 text-primary" />
-                )}
-              </button>
-            ))}
-          </div>
-        </div>
-      )}
+              {filteredOptions.map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  onClick={() => {
+                    onChange(option.value);
+                    setIsOpen(false);
+                    setQuery("");
+                  }}
+                  className="flex w-full items-center justify-between rounded-md px-2 py-1.5 text-left text-sm hover:bg-muted"
+                >
+                  <span>{option.label}</span>
+                  {option.value === value && (
+                    <Check className="size-4 text-primary" />
+                  )}
+                </button>
+              ))}
+            </div>
+          </div>,
+          document.body,
+        )}
     </div>
   );
 }
