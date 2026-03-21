@@ -17,17 +17,16 @@ const formCardClass =
 
 export function InvoiceForm({ mode, formData }: InvoiceFormProps) {
   const today = new Date().toISOString().slice(0, 10);
-  const items =
-    formData?.items ?? [
-      {
-        serviceId: "",
-        quantity: 1,
-        unitPrice: 0,
-        discount: 0,
-        vat: 0,
-        lineTotal: 0,
-      },
-    ];
+  const items = formData?.items ?? [
+    {
+      serviceId: "",
+      quantity: 1,
+      unitPrice: 0,
+      discount: 0,
+      vat: 0,
+      lineTotal: 0,
+    },
+  ];
 
   const summary =
     formData?.summary ??
@@ -44,7 +43,9 @@ export function InvoiceForm({ mode, formData }: InvoiceFormProps) {
         <h2 className="text-xl font-semibold text-foreground">Basic info</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           <label className="space-y-1.5">
-            <span className="text-sm font-medium text-foreground">Invoice ID</span>
+            <span className="text-sm font-medium text-foreground">
+              Invoice ID
+            </span>
             <input
               readOnly
               value={formData?.invoiceId ?? "Auto generated on save"}
@@ -53,7 +54,9 @@ export function InvoiceForm({ mode, formData }: InvoiceFormProps) {
           </label>
 
           <label className="space-y-1.5">
-            <span className="text-sm font-medium text-foreground">Customer</span>
+            <span className="text-sm font-medium text-foreground">
+              Customer
+            </span>
             <select
               defaultValue={formData?.customerId ?? ""}
               className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
@@ -68,7 +71,9 @@ export function InvoiceForm({ mode, formData }: InvoiceFormProps) {
           </label>
 
           <label className="space-y-1.5">
-            <span className="text-sm font-medium text-foreground">Invoice date</span>
+            <span className="text-sm font-medium text-foreground">
+              Invoice date
+            </span>
             <input
               type="date"
               defaultValue={formData?.invoiceDate ?? today}
@@ -99,10 +104,16 @@ export function InvoiceForm({ mode, formData }: InvoiceFormProps) {
               <tr className="text-left text-xs tracking-[0.16em] text-muted-foreground uppercase">
                 <th className="border-b border-border/70 px-3 py-2">Service</th>
                 <th className="border-b border-border/70 px-3 py-2">Qty</th>
-                <th className="border-b border-border/70 px-3 py-2">Unit price</th>
-                <th className="border-b border-border/70 px-3 py-2">Discount</th>
+                <th className="border-b border-border/70 px-3 py-2">
+                  Unit price
+                </th>
+                <th className="border-b border-border/70 px-3 py-2">
+                  Discount
+                </th>
                 <th className="border-b border-border/70 px-3 py-2">VAT</th>
-                <th className="border-b border-border/70 px-3 py-2">Line total</th>
+                <th className="border-b border-border/70 px-3 py-2">
+                  Line total
+                </th>
               </tr>
             </thead>
             <tbody>
@@ -115,7 +126,10 @@ export function InvoiceForm({ mode, formData }: InvoiceFormProps) {
                     >
                       <option value="">Select service</option>
                       {services.map((service) => (
-                        <option key={service.serviceId} value={service.serviceId}>
+                        <option
+                          key={service.serviceId}
+                          value={service.serviceId}
+                        >
                           {service.serviceId} - {service.name}
                         </option>
                       ))}

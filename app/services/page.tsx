@@ -29,18 +29,28 @@ export default function ServicesPage() {
           <table className="w-full min-w-160 border-separate border-spacing-0">
             <thead>
               <tr className="text-left text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                <th className="border-b border-border/70 px-4 py-3">Service ID</th>
+                <th className="border-b border-border/70 px-4 py-3">
+                  Service ID
+                </th>
                 <th className="border-b border-border/70 px-4 py-3">Name</th>
                 <th className="border-b border-border/70 px-4 py-3">Cost</th>
-                <th className="border-b border-border/70 px-4 py-3">Discounted Cost</th>
+                <th className="border-b border-border/70 px-4 py-3">
+                  Discounted Cost
+                </th>
                 <th className="border-b border-border/70 px-4 py-3">Actions</th>
               </tr>
             </thead>
             <tbody>
               {services.map((service) => (
-                <tr key={service.serviceId} className="text-sm hover:bg-muted/30">
+                <tr
+                  key={service.serviceId}
+                  className="text-sm hover:bg-muted/30"
+                >
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
-                    <Link href={`/services/${service.serviceId}`} className="underline-offset-4 hover:underline">
+                    <Link
+                      href={`/services/${service.serviceId}`}
+                      className="underline-offset-4 hover:underline"
+                    >
                       {service.serviceId}
                     </Link>
                   </td>

@@ -39,8 +39,12 @@ export default function InvoicesPage() {
           <table className="w-full min-w-160 border-separate border-spacing-0">
             <thead>
               <tr className="text-left text-xs tracking-[0.16em] text-muted-foreground uppercase">
-                <th className="border-b border-border/70 px-4 py-3">Invoice ID</th>
-                <th className="border-b border-border/70 px-4 py-3">Customer</th>
+                <th className="border-b border-border/70 px-4 py-3">
+                  Invoice ID
+                </th>
+                <th className="border-b border-border/70 px-4 py-3">
+                  Customer
+                </th>
                 <th className="border-b border-border/70 px-4 py-3">Amount</th>
                 <th className="border-b border-border/70 px-4 py-3">Status</th>
                 <th className="border-b border-border/70 px-4 py-3">Date</th>
@@ -55,7 +59,10 @@ export default function InvoicesPage() {
                   onClick={() => router.push(`/invoices/${invoice.invoiceId}`)}
                 >
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
-                    <Link href={`/invoices/${invoice.invoiceId}`} className="underline-offset-4 hover:underline">
+                    <Link
+                      href={`/invoices/${invoice.invoiceId}`}
+                      className="underline-offset-4 hover:underline"
+                    >
                       {invoice.invoiceId}
                     </Link>
                   </td>

@@ -48,7 +48,8 @@ export default async function InvoiceDetailPage({
   params: Promise<{ invoiceId: string }>;
 }) {
   const { invoiceId } = await params;
-  const formData = invoiceFormSeed[invoiceId] ?? buildFallbackInvoice(invoiceId);
+  const formData =
+    invoiceFormSeed[invoiceId] ?? buildFallbackInvoice(invoiceId);
 
   return (
     <AdminShell active="invoices">
