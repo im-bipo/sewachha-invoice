@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 type NotFoundProps = {
   status?: number;
   message?: string;
@@ -64,12 +66,12 @@ export function NotFound({
       <p className="text-6xl font-bold text-primary">{status}</p>
       <h1 className="mt-2 text-2xl font-semibold text-foreground">{message}</h1>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      <a
+      <Link
         href="/"
         className="mt-6 rounded-lg bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary/80"
       >
         Go back home
-      </a>
+      </Link>
     </section>
   );
 }
