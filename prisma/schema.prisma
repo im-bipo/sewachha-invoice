@@ -1,0 +1,123 @@
+generator client {
+    provider = "prisma-client-js"
+}
+
+datasource db {
+    provider = "postgresql"
+    url      = env("DATABASE_URL")
+}
+
+enum InvoiceStatus {
+    DRAFT
+    PENDING
+    PAID
+    OVERDUE
+    CANCELLED
+}
+
+model User {
+    id          String  @id @default(cuid())
+    clerkUserId String  @unique
+    name        String?
+    email       String? @unique
+    role        String  @default("admin")
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    invoices Invoice[] @relation("CreatedInvoices")
+
+    @@map("users")
+}
+
+model Customer {
+    id          String  @id @default(cuid())
+    customerId  String  @unique
+    name        String
+    address     String?
+    phoneNumber String?
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    invoices Invoice[]
+
+    @@index([customerId])
+    @@map("customers")
+}
+
+model Service {
+    id             String   @id @default(cuid())
+    serviceId      String   @unique
+    name           String
+    cost           Decimal  @db.Decimal(10, 2)
+    discountedCost Decimal? @db.Decimal(10, 2)
+    isActive       Boolean  @default(true)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    invoiceItems InvoiceItem[]
+
+    @@index([serviceId])
+    @@map("services")
+}
+
+model Invoice {
+    id        String @id @default(cuid())
+    invoiceId String @unique
+
+    customerDbId String
+    customer     Customer @relation(fields: [customerDbId], references: [id], onDelete: Restrict)
+
+    discount Decimal? @db.Decimal(10, 2)
+    vat      Decimal? @db.Decimal(10, 2)
+    subtotal Decimal  @db.Decimal(10, 2)
+    total    Decimal  @db.Decimal(10, 2)
+
+    status      InvoiceStatus @default(DRAFT)
+    pdfUrl      String?
+    note        String?
+    invoiceDate DateTime      @default(now())
+
+    createdById String
+    createdBy   User   @relation("CreatedInvoices", fields: [createdById], references: [id], onDelete: Restrict)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    items InvoiceItem[]
+
+    @@index([invoiceId])
+    @@index([customerDbId])
+    @@index([createdById])
+    @@index([status])
+    @@index([invoiceDate])
+    @@map("invoices")
+}
+
+model InvoiceItem {
+    id String @id @default(cuid())
+
+    invoiceDbId String
+    invoice     Invoice @relation(fields: [invoiceDbId], references: [id], onDelete: Cascade)
+
+    serviceDbId String
+    service     Service @relation(fields: [serviceDbId], references: [id], onDelete: Restrict)
+
+    serviceIdSnapshot String
+    serviceName       String
+    unitPrice         Decimal @db.Decimal(10, 2)
+
+    quantity Int      @default(1)
+    discount Decimal? @db.Decimal(10, 2)
+    vat      Decimal? @db.Decimal(10, 2)
+    total    Decimal  @db.Decimal(10, 2)
+
+    createdAt DateTime @default(now())
+    updatedAt DateTime @updatedAt
+
+    @@index([invoiceDbId])
+    @@index([serviceDbId])
+    @@map("invoice_items")
+}

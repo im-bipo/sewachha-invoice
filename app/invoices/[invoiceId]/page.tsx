@@ -4,43 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { InvoiceForm } from "@/components/custom/forms/invoice-form";
 import { Button } from "@/components/ui/button";
-import {
-  getInvoiceById,
-  invoiceFormSeed,
-  InvoiceFormData,
-} from "@/lib/mock-admin-data";
-
-function buildFallbackInvoice(invoiceId: string): InvoiceFormData {
-  const listInvoice = getInvoiceById(invoiceId);
-
-  if (!listInvoice) {
-    notFound();
-  }
-
-  return {
-    invoiceId: listInvoice.invoiceId,
-    customerId: "",
-    invoiceDate: listInvoice.date,
-    status: listInvoice.status,
-    notes: "",
-    items: [
-      {
-        serviceId: "",
-        quantity: 1,
-        unitPrice: listInvoice.amount,
-        discount: 0,
-        vat: 0,
-        lineTotal: listInvoice.amount,
-      },
-    ],
-    summary: {
-      subtotal: listInvoice.amount,
-      discount: 0,
-      vat: 0,
-      total: listInvoice.amount,
-    },
-  };
-}
+import { prisma } from "@/lib/prisma";
 
 export default async function InvoiceDetailPage({
   params,
@@ -48,8 +12,58 @@ export default async function InvoiceDetailPage({
   params: Promise<{ invoiceId: string }>;
 }) {
   const { invoiceId } = await params;
-  const formData =
-    invoiceFormSeed[invoiceId] ?? buildFallbackInvoice(invoiceId);
+
+  const [invoice, customers, services] = await Promise.all([
+    prisma.invoice.findUnique({
+      where: { invoiceId },
+      include: {
+        customer: { select: { customerId: true } },
+        items: {
+          select: {
+            serviceIdSnapshot: true,
+            quantity: true,
+            unitPrice: true,
+            discount: true,
+            vat: true,
+          },
+          orderBy: { createdAt: "asc" },
+        },
+      },
+    }),
+    prisma.customer.findMany({
+      orderBy: { customerId: "asc" },
+      select: {
+        customerId: true,
+        name: true,
+        address: true,
+        phoneNumber: true,
+      },
+    }),
+    prisma.service.findMany({
+      where: { isActive: true },
+      orderBy: { serviceId: "asc" },
+      select: { serviceId: true, name: true, cost: true },
+    }),
+  ]);
+
+  if (!invoice) {
+    notFound();
+  }
+
+  const formData = {
+    invoiceId: invoice.invoiceId,
+    customerId: invoice.customer.customerId,
+    invoiceDate: new Date(invoice.invoiceDate).toISOString().slice(0, 10),
+    status: invoice.status,
+    note: invoice.note ?? "",
+    items: invoice.items.map((item) => ({
+      serviceId: item.serviceIdSnapshot,
+      quantity: item.quantity,
+      unitPrice: Number(item.unitPrice),
+      discount: Number(item.discount ?? 0),
+      vat: Number(item.vat ?? 0),
+    })),
+  };
 
   return (
     <AdminShell active="invoices">
@@ -72,7 +86,15 @@ export default async function InvoiceDetailPage({
         </div>
       </section>
 
-      <InvoiceForm mode="edit" formData={formData} />
+      <InvoiceForm
+        mode="edit"
+        invoice={formData}
+        customers={customers}
+        services={services.map((service) => ({
+          ...service,
+          cost: Number(service.cost),
+        }))}
+      />
     </AdminShell>
   );
 }

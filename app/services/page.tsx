@@ -1,10 +1,31 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
+import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { Button } from "@/components/ui/button";
-import { formatCurrency, services } from "@/lib/mock-admin-data";
+import { deleteServiceAction } from "@/lib/server/admin-actions";
+import { prisma } from "@/lib/prisma";
+import { formatCurrency } from "@/lib/server/admin-utils";
 
-export default function ServicesPage() {
+export default async function ServicesPage() {
+  const serviceRows = await prisma.service.findMany({
+    orderBy: { serviceId: "asc" },
+    select: {
+      serviceId: true,
+      name: true,
+      cost: true,
+      discountedCost: true,
+    },
+  });
+
+  const services = serviceRows.map((service) => ({
+    serviceId: service.serviceId,
+    name: service.name,
+    cost: Number(service.cost),
+    discountedCost:
+      service.discountedCost == null ? null : Number(service.discountedCost),
+  }));
+
   return (
     <AdminShell active="services">
       <section className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-8">
@@ -58,11 +79,11 @@ export default function ServicesPage() {
                     {service.name}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3 text-muted-foreground">
-                    {formatCurrency(service.cost)}
+                    {formatCurrency(Number(service.cost))}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3 text-muted-foreground">
                     {service.discountedCost
-                      ? formatCurrency(service.discountedCost)
+                      ? formatCurrency(Number(service.discountedCost))
                       : "-"}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3">
@@ -77,13 +98,27 @@ export default function ServicesPage() {
                           Edit
                         </Button>
                       </Link>
-                      <Button variant="destructive" size="xs">
-                        Delete
-                      </Button>
+                      <DeleteActionButton
+                        confirmMessage={`Delete service ${service.serviceId}?`}
+                        onDelete={deleteServiceAction.bind(
+                          null,
+                          service.serviceId,
+                        )}
+                      />
                     </div>
                   </td>
                 </tr>
               ))}
+              {!services.length && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-sm text-muted-foreground"
+                  >
+                    No services found. Add your first service to begin.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

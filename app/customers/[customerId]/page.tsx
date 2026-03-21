@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { CustomerForm } from "@/components/custom/forms/customer-form";
 import { Button } from "@/components/ui/button";
-import { getCustomerById } from "@/lib/mock-admin-data";
+import { prisma } from "@/lib/prisma";
 
 export default async function CustomerDetailPage({
   params,
@@ -12,7 +12,15 @@ export default async function CustomerDetailPage({
   params: Promise<{ customerId: string }>;
 }) {
   const { customerId } = await params;
-  const customer = getCustomerById(customerId);
+  const customer = await prisma.customer.findUnique({
+    where: { customerId },
+    select: {
+      customerId: true,
+      name: true,
+      address: true,
+      phoneNumber: true,
+    },
+  });
 
   if (!customer) {
     notFound();

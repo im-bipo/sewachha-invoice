@@ -1,18 +1,29 @@
-"use client";
-
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
+import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { Button } from "@/components/ui/button";
+import { deleteInvoiceAction } from "@/lib/server/admin-actions";
+import { prisma } from "@/lib/prisma";
 import {
   formatCurrency,
-  invoices,
   invoiceStatusClass,
-} from "@/lib/mock-admin-data";
+  statusToLabel,
+} from "@/lib/server/admin-utils";
 
-export default function InvoicesPage() {
-  const router = useRouter();
+export default async function InvoicesPage() {
+  const invoiceRows = await prisma.invoice.findMany({
+    orderBy: { invoiceDate: "desc" },
+    include: { customer: { select: { name: true } } },
+  });
+
+  const invoices = invoiceRows.map((invoice) => ({
+    invoiceId: invoice.invoiceId,
+    total: Number(invoice.total),
+    status: invoice.status,
+    invoiceDate: invoice.invoiceDate,
+    customer: invoice.customer,
+  }));
 
   return (
     <AdminShell active="invoices">
@@ -55,8 +66,7 @@ export default function InvoicesPage() {
               {invoices.map((invoice) => (
                 <tr
                   key={invoice.invoiceId}
-                  className="cursor-pointer text-sm hover:bg-muted/30"
-                  onClick={() => router.push(`/invoices/${invoice.invoiceId}`)}
+                  className="text-sm hover:bg-muted/30"
                 >
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
                     <Link
@@ -67,10 +77,10 @@ export default function InvoicesPage() {
                     </Link>
                   </td>
                   <td className="border-b border-border/60 px-4 py-3 text-muted-foreground">
-                    {invoice.customer}
+                    {invoice.customer.name}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
-                    {formatCurrency(invoice.amount)}
+                    {formatCurrency(Number(invoice.total))}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3">
                     <span
@@ -78,41 +88,45 @@ export default function InvoicesPage() {
                         invoice.status,
                       )}`}
                     >
-                      {invoice.status}
+                      {statusToLabel(invoice.status)}
                     </span>
                   </td>
                   <td className="border-b border-border/60 px-4 py-3 text-muted-foreground">
-                    {invoice.date}
+                    {new Date(invoice.invoiceDate).toLocaleDateString()}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3">
                     <div className="flex gap-2">
-                      <Link
-                        href={`/invoices/${invoice.invoiceId}`}
-                        onClick={(event) => event.stopPropagation()}
-                      >
+                      <Link href={`/invoices/${invoice.invoiceId}`}>
                         <Button variant="outline" size="xs">
                           View
                         </Button>
                       </Link>
-                      <Link
-                        href={`/invoices/${invoice.invoiceId}`}
-                        onClick={(event) => event.stopPropagation()}
-                      >
+                      <Link href={`/invoices/${invoice.invoiceId}`}>
                         <Button variant="outline" size="xs">
                           Edit
                         </Button>
                       </Link>
-                      <Button
-                        variant="destructive"
-                        size="xs"
-                        onClick={(event) => event.stopPropagation()}
-                      >
-                        Delete
-                      </Button>
+                      <DeleteActionButton
+                        confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
+                        onDelete={deleteInvoiceAction.bind(
+                          null,
+                          invoice.invoiceId,
+                        )}
+                      />
                     </div>
                   </td>
                 </tr>
               ))}
+              {!invoices.length && (
+                <tr>
+                  <td
+                    colSpan={6}
+                    className="px-4 py-8 text-center text-sm text-muted-foreground"
+                  >
+                    No invoices found. Create your first invoice to get started.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

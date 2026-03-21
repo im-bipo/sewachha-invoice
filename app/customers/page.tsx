@@ -1,10 +1,29 @@
 import Link from "next/link";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
+import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { Button } from "@/components/ui/button";
-import { customers } from "@/lib/mock-admin-data";
+import { deleteCustomerAction } from "@/lib/server/admin-actions";
+import { prisma } from "@/lib/prisma";
 
-export default function CustomersPage() {
+type CustomerRow = {
+  customerId: string;
+  name: string;
+  address: string | null;
+  phoneNumber: string | null;
+};
+
+export default async function CustomersPage() {
+  const customers = (await prisma.customer.findMany({
+    orderBy: { customerId: "asc" },
+    select: {
+      customerId: true,
+      name: true,
+      address: true,
+      phoneNumber: true,
+    },
+  })) as CustomerRow[];
+
   return (
     <AdminShell active="customers">
       <section className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-8">
@@ -77,13 +96,27 @@ export default function CustomersPage() {
                           Edit
                         </Button>
                       </Link>
-                      <Button variant="destructive" size="xs">
-                        Delete
-                      </Button>
+                      <DeleteActionButton
+                        confirmMessage={`Delete customer ${customer.customerId}?`}
+                        onDelete={deleteCustomerAction.bind(
+                          null,
+                          customer.customerId,
+                        )}
+                      />
                     </div>
                   </td>
                 </tr>
               ))}
+              {!customers.length && (
+                <tr>
+                  <td
+                    colSpan={5}
+                    className="px-4 py-8 text-center text-sm text-muted-foreground"
+                  >
+                    No customers found. Add your first customer to begin.
+                  </td>
+                </tr>
+              )}
             </tbody>
           </table>
         </div>

@@ -4,7 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { ServiceForm } from "@/components/custom/forms/service-form";
 import { Button } from "@/components/ui/button";
-import { getServiceById } from "@/lib/mock-admin-data";
+import { prisma } from "@/lib/prisma";
 
 export default async function ServiceDetailPage({
   params,
@@ -12,7 +12,15 @@ export default async function ServiceDetailPage({
   params: Promise<{ serviceId: string }>;
 }) {
   const { serviceId } = await params;
-  const service = getServiceById(serviceId);
+  const service = await prisma.service.findUnique({
+    where: { serviceId },
+    select: {
+      serviceId: true,
+      name: true,
+      cost: true,
+      discountedCost: true,
+    },
+  });
 
   if (!service) {
     notFound();
@@ -39,7 +47,17 @@ export default async function ServiceDetailPage({
         </div>
       </section>
 
-      <ServiceForm mode="edit" service={service} />
+      <ServiceForm
+        mode="edit"
+        service={{
+          ...service,
+          cost: Number(service.cost),
+          discountedCost:
+            service.discountedCost == null
+              ? null
+              : Number(service.discountedCost),
+        }}
+      />
     </AdminShell>
   );
 }

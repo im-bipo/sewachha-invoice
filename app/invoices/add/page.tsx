@@ -3,8 +3,26 @@ import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { InvoiceForm } from "@/components/custom/forms/invoice-form";
 import { Button } from "@/components/ui/button";
+import { prisma } from "@/lib/prisma";
 
-export default function AddInvoicePage() {
+export default async function AddInvoicePage() {
+  const [customers, services] = await Promise.all([
+    prisma.customer.findMany({
+      orderBy: { customerId: "asc" },
+      select: {
+        customerId: true,
+        name: true,
+        address: true,
+        phoneNumber: true,
+      },
+    }),
+    prisma.service.findMany({
+      where: { isActive: true },
+      orderBy: { serviceId: "asc" },
+      select: { serviceId: true, name: true, cost: true },
+    }),
+  ]);
+
   return (
     <AdminShell active="invoices">
       <section className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-8">
@@ -26,7 +44,14 @@ export default function AddInvoicePage() {
         </div>
       </section>
 
-      <InvoiceForm mode="add" />
+      <InvoiceForm
+        mode="add"
+        customers={customers}
+        services={services.map((service) => ({
+          ...service,
+          cost: Number(service.cost),
+        }))}
+      />
     </AdminShell>
   );
 }
