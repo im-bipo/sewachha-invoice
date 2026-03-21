@@ -68,7 +68,14 @@ type ServiceLookup = {
 function parseInvoiceItems(formData: FormData): InvoiceItemPayload[] {
   const items: InvoiceItemPayload[] = [];
 
-  for (let i = 0; i < 3; i += 1) {
+  const indices = Array.from(formData.keys())
+    .map((key) => key.match(/^items\.(\d+)\.serviceId$/)?.[1])
+    .filter((value): value is string => Boolean(value))
+    .map((value) => Number(value))
+    .filter((value) => Number.isInteger(value))
+    .sort((a, b) => a - b);
+
+  for (const i of indices) {
     const serviceId = formData.get(`items.${i}.serviceId`)?.toString().trim();
 
     if (!serviceId) {
