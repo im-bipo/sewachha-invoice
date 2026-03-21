@@ -50,12 +50,35 @@ export default async function InvoiceDetailPage({
     notFound();
   }
 
+  const itemDiscountTotal = invoice.items.reduce(
+    (sum, item) => sum + Number(item.discount ?? 0),
+    0,
+  );
+  const itemVatTotal = invoice.items.reduce(
+    (sum, item) => sum + Number(item.vat ?? 0),
+    0,
+  );
+
+  const globalDiscountPercent =
+    Number(invoice.subtotal) > 0
+      ? ((Number(invoice.discount ?? 0) - itemDiscountTotal) /
+          Number(invoice.subtotal)) *
+        100
+      : 0;
+  const globalVatPercent =
+    Number(invoice.subtotal) > 0
+      ? ((Number(invoice.vat ?? 0) - itemVatTotal) / Number(invoice.subtotal)) *
+        100
+      : 0;
+
   const formData = {
     invoiceId: invoice.invoiceId,
     customerId: invoice.customer.customerId,
     invoiceDate: new Date(invoice.invoiceDate).toISOString().slice(0, 10),
     status: invoice.status,
     note: invoice.note ?? "",
+    discount: Number(globalDiscountPercent.toFixed(2)),
+    vat: Number(globalVatPercent.toFixed(2)),
     items: invoice.items.map((item) => ({
       serviceId: item.serviceIdSnapshot,
       quantity: item.quantity,

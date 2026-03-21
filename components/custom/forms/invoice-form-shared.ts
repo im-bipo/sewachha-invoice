@@ -11,6 +11,8 @@ export type InvoiceFormRecord = {
   invoiceDate: string;
   status: InvoiceStatus;
   note: string;
+  discount?: number;
+  vat?: number;
   items: Array<{
     serviceId: string;
     quantity: number;
@@ -51,6 +53,8 @@ export type InvoiceTotals = {
   discount: number;
   vat: number;
   grandTotal: number;
+  discountPercent: number;
+  vatPercent: number;
 };
 
 export const statusOptions = [

@@ -9,6 +9,7 @@ import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { FormSubmitButton } from "@/components/custom/forms/form-submit-button";
 import {
   BasicInfoSection,
+  DiscountVatSection,
   InvoiceItemsSection,
   InvoicePreviewCard,
   NotesSection,
@@ -130,6 +131,8 @@ export function InvoiceForm({
   const [invoiceDate, setInvoiceDate] = useState(invoice?.invoiceDate ?? today);
   const [status, setStatus] = useState<InvoiceStatus>(invoice?.status ?? "DRAFT");
   const [note, setNote] = useState(invoice?.note ?? "");
+  const [discount, setDiscount] = useState(invoice?.discount ?? 0);
+  const [vat, setVat] = useState(invoice?.vat ?? 0);
   const [rows, setRows] = useState<ItemRow[]>(initialRows);
 
   const selectedCustomer = useMemo(
@@ -144,12 +147,24 @@ export function InvoiceForm({
       (sum, row) => sum + row.quantity * row.unitPrice,
       0,
     );
-    const discount = previewRows.reduce((sum, row) => sum + row.discount, 0);
-    const vat = previewRows.reduce((sum, row) => sum + row.vat, 0);
-    const grandTotal = subtotal - discount + vat;
+    const itemDiscount = previewRows.reduce((sum, row) => sum + row.discount, 0);
+    const itemVat = previewRows.reduce((sum, row) => sum + row.vat, 0);
+    const globalDiscountAmount = subtotal * (discount / 100);
+    const taxableAfterDiscount = subtotal - itemDiscount - globalDiscountAmount;
+    const globalVatAmount = taxableAfterDiscount * (vat / 100);
+    const totalDiscount = itemDiscount + globalDiscountAmount;
+    const totalVat = itemVat + globalVatAmount;
+    const grandTotal = subtotal - totalDiscount + totalVat;
 
-    return { subtotal, discount, vat, grandTotal };
-  }, [previewRows]);
+    return {
+      subtotal,
+      discount: totalDiscount,
+      vat: totalVat,
+      grandTotal,
+      discountPercent: discount,
+      vatPercent: vat,
+    };
+  }, [previewRows, discount, vat]);
 
   function handleServiceChange(rowIndex: number, serviceId: string) {
     setRows((prev) => {
@@ -195,6 +210,8 @@ export function InvoiceForm({
 
   return (
     <form action={formAction}>
+      <input type="hidden" name="discount" value={discount} />
+      <input type="hidden" name="vat" value={vat} />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
         <div className="space-y-4 print:hidden">
           <BasicInfoSection
@@ -215,6 +232,13 @@ export function InvoiceForm({
             onQuantityChange={handleQuantityChange}
             onAddRow={addRow}
             onRemoveRow={removeRow}
+          />
+
+          <DiscountVatSection
+            discount={discount}
+            vat={vat}
+            onDiscountChange={setDiscount}
+            onVatChange={setVat}
           />
 
           <NotesSection note={note} onNoteChange={setNote} />
@@ -262,7 +286,13 @@ export function InvoiceForm({
         @media print {
           @page {
             size: A4;
-            margin: 10mm;
+            margin: 0.20in;
+          }
+
+          html,
+          body {
+            margin: 0 !important;
+            padding: 0 !important;
           }
 
           body * {
@@ -275,15 +305,32 @@ export function InvoiceForm({
           }
 
           #invoice-print-document {
-            position: fixed;
-            inset: 0;
-            margin: 0 auto;
-            width: 190mm;
-            min-height: 277mm;
+            position: absolute;
+            top: 0.20in;
+            left: 0.20in;
+            right: 0.20in;
+            bottom: 0.20in;
+            margin: 0;
+            width: auto;
+            max-width: none;
+          }
+
+          .invoice-print-page {
+            width: 190mm !important;
+            min-height: 277mm !important;
+            margin: 0 !important;
             box-shadow: none !important;
             border: none !important;
             padding: 0 !important;
+            box-sizing: border-box !important;
             aspect-ratio: auto !important;
+            break-after: page;
+            page-break-after: always;
+          }
+
+          .invoice-print-page:last-child {
+            break-after: auto;
+            page-break-after: auto;
           }
         }
       `}</style>

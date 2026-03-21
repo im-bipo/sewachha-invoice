@@ -391,6 +391,17 @@ export async function createInvoiceAction(
       };
     }
 
+    const discountPercent = Number(formData.get("discount") ?? 0);
+    const vatPercent = Number(formData.get("vat") ?? 0);
+
+    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      throw new Error("Discount must be a percentage between 0 and 100");
+    }
+
+    if (!Number.isFinite(vatPercent) || vatPercent < 0 || vatPercent > 100) {
+      throw new Error("VAT must be a percentage between 0 and 100");
+    }
+
     const itemsInput = parseInvoiceItems(formData);
     if (!itemsInput.length) {
       return {
@@ -452,12 +463,16 @@ export async function createInvoiceAction(
         0,
       ),
     );
-    const discount = toMoney(
-      invoiceItems.reduce((sum, item) => sum + Number(item.discount || 0), 0),
+    const itemDiscount = invoiceItems.reduce(
+      (sum, item) => sum + Number(item.discount || 0),
+      0,
     );
-    const vat = toMoney(
-      invoiceItems.reduce((sum, item) => sum + Number(item.vat || 0), 0),
-    );
+    const itemVat = invoiceItems.reduce((sum, item) => sum + Number(item.vat || 0), 0);
+    const globalDiscount = toMoney((Number(subtotal) * discountPercent) / 100);
+    const discountedSubtotal = Number(subtotal) - itemDiscount - Number(globalDiscount);
+    const globalVat = toMoney((discountedSubtotal * vatPercent) / 100);
+    const discount = toMoney(itemDiscount + Number(globalDiscount));
+    const vat = toMoney(itemVat + Number(globalVat));
     const total = toMoney(subtotal - discount + vat);
 
     const invoiceId = await generatePublicId("invoice", "IID");
@@ -514,6 +529,17 @@ export async function updateInvoiceAction(
         success: false,
         message: "Invoice date is invalid",
       };
+    }
+
+    const discountPercent = Number(formData.get("discount") ?? 0);
+    const vatPercent = Number(formData.get("vat") ?? 0);
+
+    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+      throw new Error("Discount must be a percentage between 0 and 100");
+    }
+
+    if (!Number.isFinite(vatPercent) || vatPercent < 0 || vatPercent > 100) {
+      throw new Error("VAT must be a percentage between 0 and 100");
     }
 
     const existingInvoice = await prisma.invoice.findUnique({
@@ -589,12 +615,16 @@ export async function updateInvoiceAction(
         0,
       ),
     );
-    const discount = toMoney(
-      invoiceItems.reduce((sum, item) => sum + Number(item.discount || 0), 0),
+    const itemDiscount = invoiceItems.reduce(
+      (sum, item) => sum + Number(item.discount || 0),
+      0,
     );
-    const vat = toMoney(
-      invoiceItems.reduce((sum, item) => sum + Number(item.vat || 0), 0),
-    );
+    const itemVat = invoiceItems.reduce((sum, item) => sum + Number(item.vat || 0), 0);
+    const globalDiscount = toMoney((Number(subtotal) * discountPercent) / 100);
+    const discountedSubtotal = Number(subtotal) - itemDiscount - Number(globalDiscount);
+    const globalVat = toMoney((discountedSubtotal * vatPercent) / 100);
+    const discount = toMoney(itemDiscount + Number(globalDiscount));
+    const vat = toMoney(itemVat + Number(globalVat));
     const total = toMoney(subtotal - discount + vat);
 
     await prisma.invoice.update({
