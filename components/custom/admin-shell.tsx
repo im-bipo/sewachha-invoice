@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { CircleUserRound, FileText } from "lucide-react";
 
-type NavKey = "overview" | "customers" | "services" | "invoices" | "settings";
+type NavKey = "overview" | "customers" | "services" | "invoices";
 
 type AdminShellProps = {
   active: NavKey;
@@ -13,7 +13,6 @@ const navItems: Array<{ key: NavKey; label: string; href: string }> = [
   { key: "customers", label: "Customers", href: "/customers" },
   { key: "services", label: "Services", href: "/services" },
   { key: "invoices", label: "Invoices", href: "/invoices" },
-  { key: "settings", label: "Settings", href: "/settings" },
 ];
 
 export function AdminShell({ active, children }: AdminShellProps) {

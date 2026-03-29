@@ -31,6 +31,7 @@ export function SearchableSelect({
   } | null>(null);
   const containerRef = useRef<HTMLDivElement | null>(null);
   const triggerRef = useRef<HTMLButtonElement | null>(null);
+  const menuRef = useRef<HTMLDivElement | null>(null);
 
   function updateMenuPosition() {
     if (!triggerRef.current) {
@@ -47,12 +48,14 @@ export function SearchableSelect({
 
   useEffect(() => {
     function handleOutsideClick(event: MouseEvent) {
-      if (!containerRef.current) {
+      const target = event.target as Node;
+      if (containerRef.current?.contains(target)) {
         return;
       }
-      if (!containerRef.current.contains(event.target as Node)) {
-        setIsOpen(false);
+      if (menuRef.current?.contains(target)) {
+        return;
       }
+      setIsOpen(false);
     }
 
     document.addEventListener("mousedown", handleOutsideClick);
@@ -119,6 +122,7 @@ export function SearchableSelect({
         menuStyle &&
         createPortal(
           <div
+            ref={menuRef}
             className="fixed z-50 rounded-lg border border-border bg-white p-2 shadow-lg"
             style={{
               top: menuStyle.top,

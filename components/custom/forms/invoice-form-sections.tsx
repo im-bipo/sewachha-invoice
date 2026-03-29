@@ -1,7 +1,6 @@
 "use client";
 
 import Image from "next/image";
-import Link from "next/link";
 import { Plus, Printer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -251,7 +250,7 @@ export function DiscountVatSection({
             type="number"
             min={0}
             max={100}
-            step={0.01}
+            step={1}
             value={discount}
             onChange={(event) => {
               const value = Number(event.target.value);
@@ -271,7 +270,7 @@ export function DiscountVatSection({
             type="number"
             min={0}
             max={100}
-            step={0.01}
+            step={1}
             value={vat}
             onChange={(event) => {
               const value = Number(event.target.value);
@@ -394,12 +393,7 @@ export function InvoicePreviewCard({
                 </p>
                 {selectedCustomer ? (
                   <p className="mt-1 font-medium text-zinc-900">
-                    <Link
-                      href={`/customers/${selectedCustomer.customerId}`}
-                      className="underline-offset-4 hover:underline"
-                    >
-                      {selectedCustomer.name}
-                    </Link>
+                    {selectedCustomer.name}
                   </p>
                 ) : (
                   <p className="mt-1 font-medium text-zinc-900">
