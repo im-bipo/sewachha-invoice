@@ -1,5 +1,6 @@
 import Link from "next/link";
-import { CircleUserRound, FileText } from "lucide-react";
+import { UserButton } from "@clerk/nextjs";
+import { FileText } from "lucide-react";
 
 type NavKey = "overview" | "customers" | "services" | "invoices";
 
@@ -34,7 +35,7 @@ export function AdminShell({ active, children }: AdminShellProps) {
 
           <nav
             aria-label="Main"
-            className="hidden items-center gap-2 rounded-xl border border-border/80 bg-white/90 p-1.5 md:flex"
+            className="hidden items-center gap-2 rounded-xl bg-white/90 p-1.5 md:flex"
           >
             {navItems.map((item) => {
               const isActive = item.key === active;
@@ -54,13 +55,14 @@ export function AdminShell({ active, children }: AdminShellProps) {
             })}
           </nav>
 
-          <button
-            type="button"
-            aria-label="Open profile menu"
-            className="flex h-9 w-9 items-center justify-center rounded-full border border-border bg-white text-muted-foreground shadow-sm"
-          >
-            <CircleUserRound className="size-5" />
-          </button>
+          <UserButton
+            appearance={{
+              elements: {
+                avatarBox:
+                  "h-9 w-9 rounded-full border border-border bg-white shadow-sm",
+              },
+            }}
+          />
         </div>
       </header>
 

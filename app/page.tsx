@@ -1,16 +1,12 @@
 import Link from "next/link";
 import {
   CircleDollarSign,
-  LayoutGrid,
-  Plus,
   ReceiptText,
   Settings,
   SquareStack,
-  UserRound,
   Users,
 } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
-import { OverviewCharts } from "@/components/custom/overview-charts";
 import { Button } from "@/components/ui/button";
 import { prisma } from "@/lib/prisma";
 import {
@@ -36,10 +32,7 @@ export default async function Home() {
     serviceCount,
     invoiceCount,
     revenueAgg,
-    statusGrouped,
     recentInvoices,
-    invoicesForTrend,
-    activeCustomerCount,
   ] = await Promise.all([
     prisma.customer.count(),
     prisma.service.count({ where: { isActive: true } }),
@@ -49,10 +42,6 @@ export default async function Home() {
         total: true,
       },
     }),
-    prisma.invoice.groupBy({
-      by: ["status"],
-      _count: { status: true },
-    }),
     prisma.invoice.findMany({
       orderBy: { invoiceDate: "desc" },
       include: {
@@ -60,125 +49,9 @@ export default async function Home() {
       },
       take: 5,
     }),
-    prisma.invoice.findMany({
-      where: {
-        invoiceDate: {
-          gte: new Date(new Date().getFullYear(), new Date().getMonth() - 5, 1),
-        },
-      },
-      select: {
-        invoiceDate: true,
-        total: true,
-      },
-      orderBy: { invoiceDate: "asc" },
-    }),
-    prisma.invoice.groupBy({
-      by: ["customerDbId"],
-      _count: { _all: true },
-    }),
   ]);
 
-  type StatusKey = "DRAFT" | "PENDING" | "PAID" | "OVERDUE" | "CANCELLED";
-
-  const mutableStatusCounts: Record<StatusKey, number> = {
-    DRAFT: 0,
-    PENDING: 0,
-    PAID: 0,
-    OVERDUE: 0,
-    CANCELLED: 0,
-  };
-
-  for (const item of statusGrouped as Array<{
-    status: StatusKey;
-    _count: { status: number };
-  }>) {
-    mutableStatusCounts[item.status] = item._count.status;
-  }
-
-  const paidCount = mutableStatusCounts.PAID;
-  const pendingCount = mutableStatusCounts.PENDING;
-  const draftCount = mutableStatusCounts.DRAFT;
-  const overdueCount = mutableStatusCounts.OVERDUE;
-
   const totalRevenue = Number(revenueAgg._sum.total ?? 0);
-  const totalInvoices = invoiceCount || 1;
-
-  const paidRatio = Math.round((paidCount / totalInvoices) * 100);
-  const pendingRatio = Math.round((pendingCount / totalInvoices) * 100);
-  const activityRatio = customerCount
-    ? Math.round((activeCustomerCount.length / customerCount) * 100)
-    : 0;
-
-  const invoiceTodayCount = await prisma.invoice.count({
-    where: {
-      invoiceDate: {
-        gte: new Date(new Date().setHours(0, 0, 0, 0)),
-      },
-    },
-  });
-
-  const paidTodayCount = await prisma.invoice.count({
-    where: {
-      status: "PAID",
-      invoiceDate: {
-        gte: new Date(new Date().setHours(0, 0, 0, 0)),
-      },
-    },
-  });
-
-  const pendingTodayCount = await prisma.invoice.count({
-    where: {
-      status: "PENDING",
-      invoiceDate: {
-        gte: new Date(new Date().setHours(0, 0, 0, 0)),
-      },
-    },
-  });
-
-  const now = new Date();
-  const monthBuckets = Array.from({ length: 6 }, (_, index) => {
-    const monthDate = new Date(
-      now.getFullYear(),
-      now.getMonth() - (5 - index),
-      1,
-    );
-    const key = `${monthDate.getFullYear()}-${monthDate.getMonth()}`;
-    const label = monthDate.toLocaleDateString(undefined, { month: "short" });
-    return { key, label, value: 0 };
-  });
-
-  for (const invoice of invoicesForTrend) {
-    const date = new Date(invoice.invoiceDate);
-    const key = `${date.getFullYear()}-${date.getMonth()}`;
-    const bucket = monthBuckets.find((item) => item.key === key);
-    if (bucket) {
-      bucket.value += Number(invoice.total);
-    }
-  }
-
-  const statusChart = [
-    {
-      label: "Paid",
-      value: paidCount,
-      colorClass: "bg-emerald-500",
-    },
-    {
-      label: "Pending",
-      value: pendingCount,
-      colorClass: "bg-amber-500",
-    },
-    {
-      label: "Draft",
-      value: draftCount,
-      colorClass: "bg-cyan-500",
-    },
-    {
-      label: "Overdue",
-      value: overdueCount,
-      colorClass: "bg-rose-500",
-    },
-  ];
-
   const typedRecentInvoices: RecentInvoiceRow[] = recentInvoices.map(
     (invoice) => ({
       invoiceId: invoice.invoiceId,
@@ -276,115 +149,6 @@ export default async function Home() {
         </article>
       </section>
 
-      <section className="grid gap-4 xl:grid-cols-[2fr_1fr]">
-        <article className="rounded-3xl border border-border/70 bg-white p-5 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-6">
-          <h2 className="text-2xl font-semibold text-foreground">
-            Today at a glance
-          </h2>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Track invoice flow and trigger common tasks from a single panel.
-          </p>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            <div className="rounded-2xl border border-emerald-200 bg-emerald-50 p-4">
-              <p className="text-xs font-semibold tracking-[0.16em] text-emerald-700 uppercase">
-                Draft
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-emerald-900">
-                {draftCount}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-cyan-200 bg-cyan-50 p-4">
-              <p className="text-xs font-semibold tracking-[0.16em] text-cyan-700 uppercase">
-                Paid
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-cyan-900">
-                {paidCount}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-amber-200 bg-amber-50 p-4">
-              <p className="text-xs font-semibold tracking-[0.16em] text-amber-700 uppercase">
-                Pending
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-amber-900">
-                {pendingCount}
-              </p>
-            </div>
-            <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4">
-              <p className="text-xs font-semibold tracking-[0.16em] text-rose-700 uppercase">
-                Overdue
-              </p>
-              <p className="mt-2 text-3xl font-semibold text-rose-900">
-                {overdueCount}
-              </p>
-            </div>
-          </div>
-
-          <div className="mt-5 grid gap-3 sm:grid-cols-2">
-            <Link href="/invoices/add">
-              <Button variant="outline" className="justify-start">
-                <Plus />
-                Create new invoice
-              </Button>
-            </Link>
-            <Link href="/customers/add">
-              <Button variant="outline" className="justify-start">
-                <UserRound />
-                Add customer
-              </Button>
-            </Link>
-            <Link href="/services/add">
-              <Button variant="outline" className="justify-start">
-                <Plus />
-                Add service
-              </Button>
-            </Link>
-            <Link href="/invoices">
-              <Button variant="outline" className="justify-start">
-                <LayoutGrid />
-                Review recent invoices
-              </Button>
-            </Link>
-          </div>
-        </article>
-
-        <aside className="rounded-3xl border border-border/70 bg-white p-5 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-6">
-          <h3 className="text-2xl font-semibold text-foreground">
-            Live status
-          </h3>
-          <p className="mt-1 text-sm text-muted-foreground">
-            Collection and payment health overview.
-          </p>
-
-          <div className="mt-4 space-y-4">
-            <RatioBar
-              label="Paid invoice ratio"
-              value={paidRatio}
-              color="bg-emerald-500"
-            />
-            <RatioBar
-              label="Pending payment ratio"
-              value={pendingRatio}
-              color="bg-amber-500"
-            />
-            <RatioBar
-              label="Customer activity ratio"
-              value={activityRatio}
-              color="bg-cyan-500"
-            />
-          </div>
-
-          <div className="mt-5 grid grid-cols-2 gap-3">
-            <MiniStat label="Invoices today" value={invoiceTodayCount} />
-            <MiniStat label="Paid today" value={paidTodayCount} />
-            <MiniStat label="Pending today" value={pendingTodayCount} />
-            <MiniStat label="Overdue" value={overdueCount} />
-          </div>
-        </aside>
-      </section>
-
-      <OverviewCharts revenuePoints={monthBuckets} statusPoints={statusChart} />
-
       <section className="rounded-3xl border border-border/70 bg-white p-5 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-6">
         <div className="flex items-center justify-between gap-3">
           <div>
@@ -464,39 +228,5 @@ export default async function Home() {
         </div>
       </section>
     </AdminShell>
-  );
-}
-
-function RatioBar({
-  label,
-  value,
-  color,
-}: {
-  label: string;
-  value: number;
-  color: string;
-}) {
-  return (
-    <div>
-      <div className="flex items-center justify-between text-sm">
-        <span className="text-muted-foreground">{label}</span>
-        <span className="font-semibold text-foreground">{value}%</span>
-      </div>
-      <div className="mt-1.5 h-2 rounded-full bg-muted">
-        <div
-          className={`h-2 rounded-full ${color}`}
-          style={{ width: `${value}%` }}
-        />
-      </div>
-    </div>
-  );
-}
-
-function MiniStat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl bg-muted/60 p-3">
-      <p className="text-xs text-muted-foreground">{label}</p>
-      <p className="mt-1 text-2xl font-semibold text-foreground">{value}</p>
-    </div>
   );
 }
