@@ -219,7 +219,7 @@ export function InvoiceForm({
     <form action={readOnly ? undefined : formAction}>
       <input type="hidden" name="discount" value={discount} />
       <input type="hidden" name="vat" value={vat} />
-      <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
+      <div className="space-y-4">
         <fieldset disabled={readOnly} className="space-y-4 print:hidden">
           <BasicInfoSection
             invoiceId={invoice?.invoiceId}

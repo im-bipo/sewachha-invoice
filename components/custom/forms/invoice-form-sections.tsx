@@ -332,22 +332,16 @@ export function InvoicePreviewCard({
   const shouldShowPaymentPage = status === "PENDING" || status === "OVERDUE";
 
   return (
-    <aside className="self-start xl:sticky xl:top-20">
-      <div
-        id="invoice-print-controls"
-        className="mb-3 flex items-center justify-between gap-3 print:hidden"
-      >
-        <h3 className="text-lg font-semibold text-foreground">
-          Invoice Preview
-        </h3>
+    <>
+      <div className="print:hidden">
         <Button type="button" variant="outline" onClick={() => window.print()}>
           <Printer />
-          Print
+          Print Invoice
         </Button>
       </div>
 
-      <div className="rounded-3xl border border-border/70 bg-white/60 p-3 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] print:border-none print:bg-transparent print:p-0 print:shadow-none">
-        <div id="invoice-print-document" className="mx-auto w-full">
+      <div id="invoice-print-document" className="hidden print:block">
+        <div id="invoice-print-page-container">
           <article className="invoice-print-page aspect-210/297 w-full bg-white p-7 text-[11px] leading-relaxed text-zinc-800 shadow-[0_16px_40px_rgba(2,14,8,0.14)]">
             <header className="flex items-start justify-between border-b border-zinc-200 pb-4">
               <div>
@@ -494,7 +488,7 @@ export function InvoicePreviewCard({
           </article>
 
           {shouldShowPaymentPage && (
-            <article className="invoice-print-page mt-4 hidden w-full bg-white p-7 shadow-[0_16px_40px_rgba(2,14,8,0.14)] print:mt-0 print:block print:shadow-none">
+            <article className="invoice-print-page mt-4 w-full bg-white p-7 shadow-[0_16px_40px_rgba(2,14,8,0.14)]">
               <div className="relative h-full min-h-[240mm] w-full">
                 <Image
                   src="/payment.png"
@@ -509,6 +503,6 @@ export function InvoicePreviewCard({
           )}
         </div>
       </div>
-    </aside>
+    </>
   );
 }
