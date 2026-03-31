@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/custom/admin-shell";
 import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { Button } from "@/components/ui/button";
 import { deleteInvoiceAction } from "@/lib/server/admin-actions";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { prisma } from "@/lib/prisma";
 import {
   formatCurrency,
@@ -12,6 +13,9 @@ import {
 } from "@/lib/server/admin-utils";
 
 export default async function InvoicesPage() {
+  const role = await getCurrentDashboardRole();
+  const isStaff = role === "staff";
+
   const invoiceRows = await prisma.invoice.findMany({
     orderBy: { invoiceDate: "desc" },
     include: { customer: { select: { name: true } } },
@@ -69,12 +73,16 @@ export default async function InvoicesPage() {
                   className="text-sm hover:bg-muted/30"
                 >
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
-                    <Link
-                      href={`/invoices/${invoice.invoiceId}`}
-                      className="underline-offset-4 hover:underline"
-                    >
-                      {invoice.invoiceId}
-                    </Link>
+                    {isStaff ? (
+                      invoice.invoiceId
+                    ) : (
+                      <Link
+                        href={`/invoices/${invoice.invoiceId}`}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {invoice.invoiceId}
+                      </Link>
+                    )}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3 text-muted-foreground">
                     {invoice.customer.name}
@@ -95,25 +103,35 @@ export default async function InvoicesPage() {
                     {new Date(invoice.invoiceDate).toLocaleDateString()}
                   </td>
                   <td className="border-b border-border/60 px-4 py-3">
-                    <div className="flex gap-2">
-                      <Link href={`/invoices/${invoice.invoiceId}`}>
-                        <Button variant="outline" size="xs">
-                          View
-                        </Button>
-                      </Link>
-                      <Link href={`/invoices/${invoice.invoiceId}`}>
-                        <Button variant="outline" size="xs">
-                          Edit
-                        </Button>
-                      </Link>
-                      <DeleteActionButton
-                        confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
-                        onDelete={deleteInvoiceAction.bind(
-                          null,
-                          invoice.invoiceId,
-                        )}
-                      />
-                    </div>
+                    {isStaff ? (
+                      <div className="flex gap-2">
+                        <Link href={`/invoices/${invoice.invoiceId}`}>
+                          <Button variant="outline" size="xs">
+                            View
+                          </Button>
+                        </Link>
+                      </div>
+                    ) : (
+                      <div className="flex gap-2">
+                        <Link href={`/invoices/${invoice.invoiceId}`}>
+                          <Button variant="outline" size="xs">
+                            View
+                          </Button>
+                        </Link>
+                        <Link href={`/invoices/${invoice.invoiceId}`}>
+                          <Button variant="outline" size="xs">
+                            Edit
+                          </Button>
+                        </Link>
+                        <DeleteActionButton
+                          confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
+                          onDelete={deleteInvoiceAction.bind(
+                            null,
+                            invoice.invoiceId,
+                          )}
+                        />
+                      </div>
+                    )}
                   </td>
                 </tr>
               ))}

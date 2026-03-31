@@ -1,9 +1,10 @@
 import Link from "next/link";
-import { notFound } from "next/navigation";
+import { notFound, redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { ServiceForm } from "@/components/custom/forms/service-form";
 import { Button } from "@/components/ui/button";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 export default async function ServiceDetailPage({
@@ -11,6 +12,12 @@ export default async function ServiceDetailPage({
 }: {
   params: Promise<{ serviceId: string }>;
 }) {
+  const role = await getCurrentDashboardRole();
+
+  if (role === "staff") {
+    redirect("/customers");
+  }
+
   const { serviceId } = await params;
   const service = await prisma.service.findUnique({
     where: { serviceId },

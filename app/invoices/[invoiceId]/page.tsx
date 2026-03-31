@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { InvoiceForm } from "@/components/custom/forms/invoice-form";
 import { Button } from "@/components/ui/button";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 export default async function InvoiceDetailPage({
@@ -11,6 +12,9 @@ export default async function InvoiceDetailPage({
 }: {
   params: Promise<{ invoiceId: string }>;
 }) {
+  const role = await getCurrentDashboardRole();
+  const isStaff = role === "staff";
+
   const { invoiceId } = await params;
 
   const [invoice, customers, services] = await Promise.all([
@@ -94,10 +98,12 @@ export default async function InvoiceDetailPage({
         <div className="flex flex-wrap items-start justify-between gap-3">
           <div>
             <h1 className="text-3xl font-semibold text-foreground">
-              Edit Invoice {invoiceId}
+              {isStaff ? "Invoice" : "Edit Invoice"} {invoiceId}
             </h1>
             <p className="mt-2 text-base text-muted-foreground">
-              Update invoice details, line items, and payment state.
+              {isStaff
+                ? "Review invoice details and print a copy."
+                : "Update invoice details, line items, and payment state."}
             </p>
           </div>
           <Link href="/invoices">
@@ -111,6 +117,7 @@ export default async function InvoiceDetailPage({
 
       <InvoiceForm
         mode="edit"
+        readOnly={isStaff}
         invoice={formData}
         customers={customers}
         services={services.map((service) => ({

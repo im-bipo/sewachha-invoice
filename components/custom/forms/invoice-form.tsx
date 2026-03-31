@@ -35,6 +35,7 @@ type InvoiceFormProps = {
   invoice?: InvoiceFormRecord;
   customers: CustomerOption[];
   services: ServiceOption[];
+  readOnly?: boolean;
 };
 
 function createEmptyRow(): ItemRow {
@@ -57,6 +58,7 @@ export function InvoiceForm({
   invoice,
   customers,
   services,
+  readOnly = false,
 }: InvoiceFormProps) {
   const router = useRouter();
 
@@ -129,7 +131,9 @@ export function InvoiceForm({
 
   const [customerId, setCustomerId] = useState(invoice?.customerId ?? "");
   const [invoiceDate, setInvoiceDate] = useState(invoice?.invoiceDate ?? today);
-  const [status, setStatus] = useState<InvoiceStatus>(invoice?.status ?? "DRAFT");
+  const [status, setStatus] = useState<InvoiceStatus>(
+    invoice?.status ?? "DRAFT",
+  );
   const [note, setNote] = useState(invoice?.note ?? "");
   const [discount, setDiscount] = useState(invoice?.discount ?? 0);
   const [vat, setVat] = useState(invoice?.vat ?? 0);
@@ -147,7 +151,10 @@ export function InvoiceForm({
       (sum, row) => sum + row.quantity * row.unitPrice,
       0,
     );
-    const itemDiscount = previewRows.reduce((sum, row) => sum + row.discount, 0);
+    const itemDiscount = previewRows.reduce(
+      (sum, row) => sum + row.discount,
+      0,
+    );
     const itemVat = previewRows.reduce((sum, row) => sum + row.vat, 0);
     const globalDiscountAmount = subtotal * (discount / 100);
     const taxableAfterDiscount = subtotal - itemDiscount - globalDiscountAmount;
@@ -209,11 +216,11 @@ export function InvoiceForm({
   }
 
   return (
-    <form action={formAction}>
+    <form action={readOnly ? undefined : formAction}>
       <input type="hidden" name="discount" value={discount} />
       <input type="hidden" name="vat" value={vat} />
       <div className="grid gap-4 xl:grid-cols-[minmax(0,1fr)_minmax(360px,420px)]">
-        <div className="space-y-4 print:hidden">
+        <fieldset disabled={readOnly} className="space-y-4 print:hidden">
           <BasicInfoSection
             invoiceId={invoice?.invoiceId}
             invoiceDate={invoiceDate}
@@ -243,32 +250,34 @@ export function InvoiceForm({
 
           <NotesSection note={note} onNoteChange={setNote} />
 
-          <div className="flex flex-wrap items-center gap-3">
-            <FormSubmitButton
-              idleText={mode === "add" ? "Create Invoice" : "Save Invoice"}
-              pendingText={mode === "add" ? "Creating..." : "Updating..."}
-            />
-            <Link href="/invoices">
-              <Button type="button" variant="outline">
-                Cancel
-              </Button>
-            </Link>
-            {mode === "edit" && invoice && (
-              <DeleteActionButton
-                confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
-                onDelete={deleteInvoiceAction.bind(null, invoice.invoiceId)}
-                onSuccess={() => router.push("/invoices")}
+          {!readOnly && (
+            <div className="flex flex-wrap items-center gap-3">
+              <FormSubmitButton
+                idleText={mode === "add" ? "Create Invoice" : "Save Invoice"}
+                pendingText={mode === "add" ? "Creating..." : "Updating..."}
               />
-            )}
-          </div>
+              <Link href="/invoices">
+                <Button type="button" variant="outline">
+                  Cancel
+                </Button>
+              </Link>
+              {mode === "edit" && invoice && (
+                <DeleteActionButton
+                  confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
+                  onDelete={deleteInvoiceAction.bind(null, invoice.invoiceId)}
+                  onSuccess={() => router.push("/invoices")}
+                />
+              )}
+            </div>
+          )}
 
-          {mode === "edit" && invoice && (
+          {mode === "edit" && invoice && !readOnly && (
             <p className="text-xs text-muted-foreground">
               Editing invoice {invoice.invoiceId} (
               {statusToLabel(invoice.status)}).
             </p>
           )}
-        </div>
+        </fieldset>
 
         <InvoicePreviewCard
           invoiceId={invoice?.invoiceId}
@@ -286,7 +295,7 @@ export function InvoiceForm({
         @media print {
           @page {
             size: A4;
-            margin: 0.20in;
+            margin: 0.2in;
           }
 
           html,
@@ -306,10 +315,10 @@ export function InvoiceForm({
 
           #invoice-print-document {
             position: absolute;
-            top: 0.20in;
-            left: 0.20in;
-            right: 0.20in;
-            bottom: 0.20in;
+            top: 0.2in;
+            left: 0.2in;
+            right: 0.2in;
+            bottom: 0.2in;
             margin: 0;
             width: auto;
             max-width: none;

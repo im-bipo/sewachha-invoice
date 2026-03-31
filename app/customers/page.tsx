@@ -4,6 +4,7 @@ import { AdminShell } from "@/components/custom/admin-shell";
 import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { Button } from "@/components/ui/button";
 import { deleteCustomerAction } from "@/lib/server/admin-actions";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 type CustomerRow = {
@@ -14,6 +15,9 @@ type CustomerRow = {
 };
 
 export default async function CustomersPage() {
+  const role = await getCurrentDashboardRole();
+  const isStaff = role === "staff";
+
   const customers = (await prisma.customer.findMany({
     orderBy: { customerId: "asc" },
     select: {
@@ -96,13 +100,15 @@ export default async function CustomersPage() {
                           Edit
                         </Button>
                       </Link>
-                      <DeleteActionButton
-                        confirmMessage={`Delete customer ${customer.customerId}?`}
-                        onDelete={deleteCustomerAction.bind(
-                          null,
-                          customer.customerId,
-                        )}
-                      />
+                      {!isStaff && (
+                        <DeleteActionButton
+                          confirmMessage={`Delete customer ${customer.customerId}?`}
+                          onDelete={deleteCustomerAction.bind(
+                            null,
+                            customer.customerId,
+                          )}
+                        />
+                      )}
                     </div>
                   </td>
                 </tr>

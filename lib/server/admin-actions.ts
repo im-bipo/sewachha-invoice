@@ -7,6 +7,10 @@ import {
   ensureCurrentDbUser,
   generatePublicId,
 } from "@/lib/server/admin-db-utils";
+import {
+  getCurrentDashboardRole,
+  type DashboardRole,
+} from "@/lib/server/admin-auth";
 import { labelToStatus, parseMoney, toMoney } from "@/lib/server/admin-utils";
 
 export type ActionResult = {
@@ -137,11 +141,26 @@ function mapError(error: unknown, fallback: string): ActionResult {
   };
 }
 
+async function ensureAllowedRoles(
+  allowedRoles: DashboardRole[],
+  message: string,
+) {
+  const role = await getCurrentDashboardRole();
+
+  if (!allowedRoles.includes(role)) {
+    throw new Error(message);
+  }
+}
+
 export async function createCustomerAction(
   _prev: ActionResult,
   formData: FormData,
 ): Promise<ActionResult> {
   try {
+    await ensureAllowedRoles(
+      ["admin", "staff"],
+      "Only admins and staff can create customers",
+    );
     await ensureCurrentDbUser();
 
     const parsed = customerSchema.parse({
@@ -181,6 +200,10 @@ export async function updateCustomerAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
+    await ensureAllowedRoles(
+      ["admin", "staff"],
+      "Only admins and staff can edit customers",
+    );
     await ensureCurrentDbUser();
 
     const parsed = customerSchema.parse({
@@ -216,6 +239,7 @@ export async function updateCustomerAction(
 
 export async function deleteCustomerAction(customerId: string) {
   try {
+    await ensureAllowedRoles(["admin"], "Only admins can delete customers");
     await ensureCurrentDbUser();
 
     const linkedInvoices = await prisma.invoice.count({
@@ -254,6 +278,7 @@ export async function createServiceAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
+    await ensureAllowedRoles(["admin"], "Only admins can create services");
     await ensureCurrentDbUser();
 
     const parsed = serviceSchema.parse({
@@ -297,6 +322,7 @@ export async function updateServiceAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
+    await ensureAllowedRoles(["admin"], "Only admins can edit services");
     await ensureCurrentDbUser();
 
     const parsed = serviceSchema.parse({
@@ -336,6 +362,7 @@ export async function updateServiceAction(
 
 export async function deleteServiceAction(serviceId: string) {
   try {
+    await ensureAllowedRoles(["admin"], "Only admins can delete services");
     await ensureCurrentDbUser();
 
     const linkedItems = await prisma.invoiceItem.count({
@@ -374,6 +401,10 @@ export async function createInvoiceAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
+    await ensureAllowedRoles(
+      ["admin", "staff"],
+      "Only admins and staff can create invoices",
+    );
     const currentUser = await ensureCurrentDbUser();
 
     const base = invoiceBaseSchema.parse({
@@ -394,7 +425,11 @@ export async function createInvoiceAction(
     const discountPercent = Number(formData.get("discount") ?? 0);
     const vatPercent = Number(formData.get("vat") ?? 0);
 
-    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+    if (
+      !Number.isFinite(discountPercent) ||
+      discountPercent < 0 ||
+      discountPercent > 100
+    ) {
       throw new Error("Discount must be a percentage between 0 and 100");
     }
 
@@ -467,9 +502,13 @@ export async function createInvoiceAction(
       (sum, item) => sum + Number(item.discount || 0),
       0,
     );
-    const itemVat = invoiceItems.reduce((sum, item) => sum + Number(item.vat || 0), 0);
+    const itemVat = invoiceItems.reduce(
+      (sum, item) => sum + Number(item.vat || 0),
+      0,
+    );
     const globalDiscount = toMoney((Number(subtotal) * discountPercent) / 100);
-    const discountedSubtotal = Number(subtotal) - itemDiscount - Number(globalDiscount);
+    const discountedSubtotal =
+      Number(subtotal) - itemDiscount - Number(globalDiscount);
     const globalVat = toMoney((discountedSubtotal * vatPercent) / 100);
     const discount = toMoney(itemDiscount + Number(globalDiscount));
     const vat = toMoney(itemVat + Number(globalVat));
@@ -514,6 +553,7 @@ export async function updateInvoiceAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
+    await ensureAllowedRoles(["admin"], "Only admins can edit invoices");
     const currentUser = await ensureCurrentDbUser();
 
     const base = invoiceBaseSchema.parse({
@@ -534,7 +574,11 @@ export async function updateInvoiceAction(
     const discountPercent = Number(formData.get("discount") ?? 0);
     const vatPercent = Number(formData.get("vat") ?? 0);
 
-    if (!Number.isFinite(discountPercent) || discountPercent < 0 || discountPercent > 100) {
+    if (
+      !Number.isFinite(discountPercent) ||
+      discountPercent < 0 ||
+      discountPercent > 100
+    ) {
       throw new Error("Discount must be a percentage between 0 and 100");
     }
 
@@ -619,9 +663,13 @@ export async function updateInvoiceAction(
       (sum, item) => sum + Number(item.discount || 0),
       0,
     );
-    const itemVat = invoiceItems.reduce((sum, item) => sum + Number(item.vat || 0), 0);
+    const itemVat = invoiceItems.reduce(
+      (sum, item) => sum + Number(item.vat || 0),
+      0,
+    );
     const globalDiscount = toMoney((Number(subtotal) * discountPercent) / 100);
-    const discountedSubtotal = Number(subtotal) - itemDiscount - Number(globalDiscount);
+    const discountedSubtotal =
+      Number(subtotal) - itemDiscount - Number(globalDiscount);
     const globalVat = toMoney((discountedSubtotal * vatPercent) / 100);
     const discount = toMoney(itemDiscount + Number(globalDiscount));
     const vat = toMoney(itemVat + Number(globalVat));
@@ -662,6 +710,7 @@ export async function updateInvoiceAction(
 
 export async function deleteInvoiceAction(invoiceId: string) {
   try {
+    await ensureAllowedRoles(["admin"], "Only admins can delete invoices");
     await ensureCurrentDbUser();
 
     await prisma.invoice.delete({

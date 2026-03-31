@@ -1,10 +1,18 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { ServiceForm } from "@/components/custom/forms/service-form";
 import { Button } from "@/components/ui/button";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 
-export default function AddServicePage() {
+export default async function AddServicePage() {
+  const role = await getCurrentDashboardRole();
+
+  if (role === "staff") {
+    redirect("/customers");
+  }
+
   return (
     <AdminShell active="services">
       <section className="rounded-3xl border border-border/70 bg-white p-6 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-8">

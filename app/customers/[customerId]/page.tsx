@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { CustomerForm } from "@/components/custom/forms/customer-form";
 import { Button } from "@/components/ui/button";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { prisma } from "@/lib/prisma";
 
 export default async function CustomerDetailPage({
@@ -11,6 +12,9 @@ export default async function CustomerDetailPage({
 }: {
   params: Promise<{ customerId: string }>;
 }) {
+  const role = await getCurrentDashboardRole();
+  const canDelete = role === "admin";
+
   const { customerId } = await params;
   const customer = await prisma.customer.findUnique({
     where: { customerId },
@@ -30,6 +34,13 @@ export default async function CustomerDetailPage({
   if (!customer) {
     notFound();
   }
+
+  const customerFormData = {
+    customerId: customer.customerId,
+    name: customer.name,
+    address: customer.address,
+    phoneNumber: customer.phoneNumber,
+  };
 
   return (
     <AdminShell active="customers">
@@ -52,7 +63,11 @@ export default async function CustomerDetailPage({
         </div>
       </section>
 
-      <CustomerForm mode="edit" customer={customer} />
+      <CustomerForm
+        mode="edit"
+        customer={customerFormData}
+        canDelete={canDelete}
+      />
 
       <section className="mt-6 rounded-3xl border border-border/70 bg-white p-5 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-6">
         <h2 className="text-xl font-semibold text-foreground">

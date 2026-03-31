@@ -27,9 +27,14 @@ type CustomerFormProps = {
     address: string | null;
     phoneNumber: string | null;
   };
+  canDelete?: boolean;
 };
 
-export function CustomerForm({ mode, customer }: CustomerFormProps) {
+export function CustomerForm({
+  mode,
+  customer,
+  canDelete = true,
+}: CustomerFormProps) {
   const router = useRouter();
 
   const action =
@@ -118,7 +123,7 @@ export function CustomerForm({ mode, customer }: CustomerFormProps) {
             Cancel
           </Button>
         </Link>
-        {mode === "edit" && customer && (
+        {mode === "edit" && customer && canDelete && (
           <DeleteActionButton
             confirmMessage={`Delete customer ${customer.customerId}?`}
             onDelete={deleteCustomerAction.bind(null, customer.customerId)}

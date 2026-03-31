@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import {
   CircleDollarSign,
   ReceiptText,
@@ -14,6 +15,7 @@ import {
   invoiceStatusClass,
   statusToLabel,
 } from "@/lib/server/admin-utils";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 
 type RecentInvoiceRow = {
   invoiceId: string;
@@ -27,6 +29,12 @@ const summaryCardBaseClass =
   "rounded-3xl border border-border/70 bg-white p-5 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)]";
 
 export default async function Home() {
+  const role = await getCurrentDashboardRole();
+
+  if (role === "staff") {
+    redirect("/customers");
+  }
+
   const [
     customerCount,
     serviceCount,

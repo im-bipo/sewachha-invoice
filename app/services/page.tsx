@@ -1,13 +1,21 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Plus } from "lucide-react";
 import { AdminShell } from "@/components/custom/admin-shell";
 import { DeleteActionButton } from "@/components/custom/delete-action-button";
 import { Button } from "@/components/ui/button";
 import { deleteServiceAction } from "@/lib/server/admin-actions";
+import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { prisma } from "@/lib/prisma";
 import { formatCurrency } from "@/lib/server/admin-utils";
 
 export default async function ServicesPage() {
+  const role = await getCurrentDashboardRole();
+
+  if (role === "staff") {
+    redirect("/customers");
+  }
+
   const serviceRows = await prisma.service.findMany({
     orderBy: { serviceId: "asc" },
     select: {
