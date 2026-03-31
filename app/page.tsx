@@ -61,7 +61,7 @@ export default async function Home() {
 
   const totalRevenue = Number(revenueAgg._sum.total ?? 0);
   const typedRecentInvoices: RecentInvoiceRow[] = recentInvoices.map(
-    (invoice) => ({
+    (invoice: (typeof recentInvoices)[number]) => ({
       invoiceId: invoice.invoiceId,
       total: Number(invoice.total),
       status: invoice.status,
@@ -191,7 +191,7 @@ export default async function Home() {
               </tr>
             </thead>
             <tbody>
-              {typedRecentInvoices.map((invoice) => (
+              {typedRecentInvoices.map((invoice: RecentInvoiceRow) => (
                 <tr key={invoice.invoiceId} className="text-sm">
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
                     <Link

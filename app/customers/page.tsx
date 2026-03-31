@@ -66,7 +66,7 @@ export default async function CustomersPage() {
               </tr>
             </thead>
             <tbody>
-              {customers.map((customer) => (
+              {customers.map((customer: CustomerRow) => (
                 <tr
                   key={customer.customerId}
                   className="text-sm hover:bg-muted/30"

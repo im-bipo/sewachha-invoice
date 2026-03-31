@@ -26,7 +26,7 @@ export default async function ServicesPage() {
     },
   });
 
-  const services = serviceRows.map((service) => ({
+  const services = serviceRows.map((service: (typeof serviceRows)[number]) => ({
     serviceId: service.serviceId,
     name: service.name,
     cost: Number(service.cost),
@@ -70,7 +70,7 @@ export default async function ServicesPage() {
               </tr>
             </thead>
             <tbody>
-              {services.map((service) => (
+              {services.map((service: (typeof services)[number]) => (
                 <tr
                   key={service.serviceId}
                   className="text-sm hover:bg-muted/30"

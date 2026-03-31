@@ -21,7 +21,7 @@ export default async function InvoicesPage() {
     include: { customer: { select: { name: true } } },
   });
 
-  const invoices = invoiceRows.map((invoice) => ({
+  const invoices = invoiceRows.map((invoice: (typeof invoiceRows)[number]) => ({
     invoiceId: invoice.invoiceId,
     total: Number(invoice.total),
     status: invoice.status,
@@ -67,7 +67,7 @@ export default async function InvoicesPage() {
               </tr>
             </thead>
             <tbody>
-              {invoices.map((invoice) => (
+              {invoices.map((invoice: (typeof invoices)[number]) => (
                 <tr
                   key={invoice.invoiceId}
                   className="text-sm hover:bg-muted/30"

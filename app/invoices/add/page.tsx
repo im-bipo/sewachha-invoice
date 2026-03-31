@@ -48,7 +48,7 @@ export default async function AddInvoicePage() {
       <InvoiceForm
         mode="add"
         customers={customers}
-        services={services.map((service) => ({
+        services={services.map((service: (typeof services)[number]) => ({
           ...service,
           cost: Number(service.cost),
         }))}

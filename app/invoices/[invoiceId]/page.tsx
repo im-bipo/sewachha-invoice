@@ -55,11 +55,13 @@ export default async function InvoiceDetailPage({
   }
 
   const itemDiscountTotal = invoice.items.reduce(
-    (sum, item) => sum + Number(item.discount ?? 0),
+    (sum: number, item: (typeof invoice.items)[number]) =>
+      sum + Number(item.discount ?? 0),
     0,
   );
   const itemVatTotal = invoice.items.reduce(
-    (sum, item) => sum + Number(item.vat ?? 0),
+    (sum: number, item: (typeof invoice.items)[number]) =>
+      sum + Number(item.vat ?? 0),
     0,
   );
 
@@ -83,7 +85,7 @@ export default async function InvoiceDetailPage({
     note: invoice.note ?? "",
     discount: Number(globalDiscountPercent.toFixed(2)),
     vat: Number(globalVatPercent.toFixed(2)),
-    items: invoice.items.map((item) => ({
+    items: invoice.items.map((item: (typeof invoice.items)[number]) => ({
       serviceId: item.serviceIdSnapshot,
       quantity: item.quantity,
       unitPrice: Number(item.unitPrice),
@@ -118,7 +120,7 @@ export default async function InvoiceDetailPage({
         invoice={formData}
         canDelete={canDelete}
         customers={customers}
-        services={services.map((service) => ({
+        services={services.map((service: (typeof services)[number]) => ({
           ...service,
           cost: Number(service.cost),
         }))}
