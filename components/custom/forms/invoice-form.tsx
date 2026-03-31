@@ -188,20 +188,6 @@ export function InvoiceForm({
     });
   }
 
-  function handleQuantityChange(rowIndex: number, quantityValue: string) {
-    const parsed = Number(quantityValue);
-    const quantity = Number.isFinite(parsed) && parsed > 0 ? parsed : 1;
-
-    setRows((prev) => {
-      const next = [...prev];
-      next[rowIndex] = {
-        ...next[rowIndex],
-        quantity,
-      };
-      return next;
-    });
-  }
-
   function addRow() {
     setRows((prev) => [...prev, createEmptyRow()]);
   }
@@ -236,7 +222,6 @@ export function InvoiceForm({
             rows={rows}
             serviceOptions={serviceOptions}
             onServiceChange={handleServiceChange}
-            onQuantityChange={handleQuantityChange}
             onAddRow={addRow}
             onRemoveRow={removeRow}
           />
@@ -283,29 +268,35 @@ export function InvoiceForm({
           )}
         </fieldset>
 
-        <InvoicePreviewCard
-          invoiceId={invoice?.invoiceId}
-          invoiceDate={invoiceDate}
-          status={status}
-          selectedCustomer={selectedCustomer}
-          previewRows={previewRows}
-          serviceMap={serviceMap}
-          totals={totals}
-          note={note}
-        />
+        {mode === "edit" && (
+          <InvoicePreviewCard
+            invoiceId={invoice?.invoiceId}
+            invoiceDate={invoiceDate}
+            status={status}
+            selectedCustomer={selectedCustomer}
+            previewRows={previewRows}
+            serviceMap={serviceMap}
+            totals={totals}
+            note={note}
+            customerName={selectedCustomer?.name}
+            customerId={selectedCustomer?.customerId}
+          />
+        )}
       </div>
 
       <style jsx global>{`
         @media print {
           @page {
             size: A4;
-            margin: 0.2in;
+            margin: 0;
           }
 
           html,
           body {
             margin: 0 !important;
             padding: 0 !important;
+            width: 100% !important;
+            height: 100% !important;
           }
 
           body * {
@@ -319,26 +310,29 @@ export function InvoiceForm({
 
           #invoice-print-document {
             position: absolute;
-            top: 0.2in;
-            left: 0.2in;
-            right: 0.2in;
-            bottom: 0.2in;
-            margin: 0;
-            width: auto;
-            max-width: none;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            margin: 0 !important;
+            padding: 0 !important;
+            width: 100% !important;
+            max-width: none !important;
+            height: 100% !important;
           }
 
           .invoice-print-page {
-            width: 190mm !important;
-            min-height: 277mm !important;
+            width: 210mm !important;
+            height: 297mm !important;
             margin: 0 !important;
+            padding: 20mm !important;
             box-shadow: none !important;
             border: none !important;
-            padding: 0 !important;
             box-sizing: border-box !important;
             aspect-ratio: auto !important;
             break-after: page;
             page-break-after: always;
+            background: white !important;
           }
 
           .invoice-print-page:last-child {

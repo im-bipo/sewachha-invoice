@@ -111,7 +111,6 @@ type InvoiceItemsSectionProps = {
   rows: ItemRow[];
   serviceOptions: SelectOption[];
   onServiceChange: (rowIndex: number, serviceId: string) => void;
-  onQuantityChange: (rowIndex: number, quantityValue: string) => void;
   onAddRow: () => void;
   onRemoveRow: (rowIndex: number) => void;
 };
@@ -120,7 +119,6 @@ export function InvoiceItemsSection({
   rows,
   serviceOptions,
   onServiceChange,
-  onQuantityChange,
   onAddRow,
   onRemoveRow,
 }: InvoiceItemsSectionProps) {
@@ -130,7 +128,7 @@ export function InvoiceItemsSection({
         Invoice items
       </h2>
       <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
-        Service auto-fills rate. Quantity defaults to 1.
+        Add services to your invoice.
       </p>
       <div className="mt-4 overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6">
         <table className="w-full border-separate border-spacing-0">
@@ -140,13 +138,7 @@ export function InvoiceItemsSection({
                 Service
               </th>
               <th className="border-b border-border/70 px-2 sm:px-3 py-2">
-                Qty
-              </th>
-              <th className="border-b border-border/70 px-2 sm:px-3 py-2">
-                Rate
-              </th>
-              <th className="border-b border-border/70 px-2 sm:px-3 py-2">
-                Total
+                Price
               </th>
               <th className="border-b border-border/70 px-2 sm:px-3 py-2 text-right">
                 Action
@@ -173,31 +165,19 @@ export function InvoiceItemsSection({
                     />
                   </td>
                   <td className="border-b border-border/60 px-2 sm:px-3 py-2">
-                    <input
-                      name={`items.${index}.quantity`}
-                      type="number"
-                      min={1}
-                      value={item.quantity}
-                      onChange={(event) =>
-                        onQuantityChange(index, event.target.value)
-                      }
-                      className="h-8 sm:h-9 w-16 sm:w-20 rounded-lg border border-border bg-background px-2 text-xs sm:text-sm"
-                    />
-                  </td>
-                  <td className="border-b border-border/60 px-2 sm:px-3 py-2">
                     <p className="h-8 sm:h-9 px-2 text-xs sm:text-sm leading-8 sm:leading-9 text-foreground">
-                      {formatCurrency(item.unitPrice)}
+                      {formatCurrency(lineTotal)}
                     </p>
+                    <input
+                      type="hidden"
+                      name={`items.${index}.quantity`}
+                      value={item.quantity}
+                    />
                     <input
                       type="hidden"
                       name={`items.${index}.unitPrice`}
                       value={item.unitPrice}
                     />
-                  </td>
-                  <td className="border-b border-border/60 px-2 sm:px-3 py-2">
-                    <p className="h-8 sm:h-9 px-2 text-xs sm:text-sm leading-8 sm:leading-9 text-foreground">
-                      {formatCurrency(lineTotal)}
-                    </p>
                     <input
                       type="hidden"
                       name={`items.${index}.discount`}
@@ -342,6 +322,8 @@ type InvoicePreviewCardProps = {
   serviceMap: Map<string, ServiceOption>;
   totals: InvoiceTotals;
   note: string;
+  customerName?: string;
+  customerId?: string;
 };
 
 export function InvoicePreviewCard({
@@ -353,13 +335,30 @@ export function InvoicePreviewCard({
   serviceMap,
   totals,
   note,
+  customerName,
+  customerId,
 }: InvoicePreviewCardProps) {
   const shouldShowPaymentPage = status === "PENDING" || status === "OVERDUE";
+
+  const handlePrint = () => {
+    // Set document title to use as PDF filename
+    const originalTitle = document.title;
+    if (customerName && customerId && invoiceId) {
+      document.title = `${customerName} - ${customerId} - ${invoiceId}`;
+    }
+
+    window.print();
+
+    // Restore original title after a short delay
+    setTimeout(() => {
+      document.title = originalTitle;
+    }, 100);
+  };
 
   return (
     <>
       <div className="print:hidden">
-        <Button type="button" variant="outline" onClick={() => window.print()}>
+        <Button type="button" variant="outline" onClick={handlePrint}>
           <Printer />
           Print Invoice
         </Button>
@@ -367,71 +366,77 @@ export function InvoicePreviewCard({
 
       <div id="invoice-print-document" className="hidden print:block">
         <div id="invoice-print-page-container">
-          <article className="invoice-print-page aspect-210/297 w-full bg-white p-7 text-[11px] leading-relaxed text-zinc-800 shadow-[0_16px_40px_rgba(2,14,8,0.14)]">
-            <header className="flex items-start justify-between border-b border-zinc-200 pb-4">
+          <article className="invoice-print-page aspect-210/297 w-full bg-white p-8 text-[10px] leading-relaxed text-zinc-800 shadow-[0_16px_40px_rgba(2,14,8,0.14)]">
+            <header className="flex items-start justify-between border-b-2 border-zinc-900 pb-5 mb-6">
               <div>
-                <p className="text-xs font-semibold tracking-[0.2em] text-zinc-500 uppercase">
+                <p className="text-[9px] font-bold tracking-[0.15em] text-zinc-700 uppercase">
                   Sewachha Invoice
                 </p>
-                <h4 className="mt-1 text-2xl font-semibold text-zinc-900">
-                  Invoice
+                <h4 className="mt-2 text-3xl font-bold text-zinc-900">
+                  INVOICE
                 </h4>
               </div>
-              <div className="text-right text-xs">
+              <div className="text-right text-[10px] space-y-1">
                 <p>
-                  <span className="font-semibold">ID:</span>{" "}
-                  {invoiceId ?? "Auto on save"}
+                  <span className="font-bold text-zinc-900">Invoice ID:</span>{" "}
+                  <span className="font-mono">
+                    {invoiceId ?? "Auto on save"}
+                  </span>
                 </p>
                 <p>
-                  <span className="font-semibold">Date:</span>{" "}
+                  <span className="font-bold text-zinc-900">Date:</span>{" "}
                   {invoiceDate || "-"}
                 </p>
                 <p>
-                  <span className="font-semibold">Status:</span>{" "}
-                  {statusToLabel(status)}
+                  <span className="font-bold text-zinc-900">Status:</span>{" "}
+                  <span className="px-2 py-0.5 bg-zinc-200 rounded text-zinc-900 font-semibold">
+                    {statusToLabel(status)}
+                  </span>
                 </p>
               </div>
             </header>
 
-            <section className="mt-5 grid grid-cols-2 gap-6 text-xs">
+            <section className="grid grid-cols-2 gap-8 mb-6 text-[10px]">
               <div>
-                <p className="font-semibold tracking-wide text-zinc-600 uppercase">
-                  Business Info
+                <p className="font-bold tracking-wide text-zinc-900 uppercase mb-2 border-b border-zinc-400 pb-1">
+                  From
                 </p>
-                <p className="mt-1 font-medium text-zinc-900">
+                <p className="font-bold text-zinc-900 mt-1">
                   Sewachha Invoice Pvt. Ltd.
                 </p>
-                <p>Kathmandu, Nepal</p>
-                <p>+977-01-XXXXXXX</p>
-                <p>billing@sewachhainvoice.com</p>
+                <p className="text-zinc-700">Kathmandu, Nepal</p>
+                <p className="text-zinc-700">+977-01-XXXXXXX</p>
+                <p className="text-zinc-700">billing@sewachhainvoice.com</p>
               </div>
 
               <div>
-                <p className="font-semibold tracking-wide text-zinc-600 uppercase">
+                <p className="font-bold tracking-wide text-zinc-900 uppercase mb-2 border-b border-zinc-400 pb-1">
                   Bill To
                 </p>
                 {selectedCustomer ? (
-                  <p className="mt-1 font-medium text-zinc-900">
+                  <p className="font-bold text-zinc-900 mt-1">
                     {selectedCustomer.name}
                   </p>
                 ) : (
-                  <p className="mt-1 font-medium text-zinc-900">
+                  <p className="font-bold text-zinc-900 mt-1">
                     Select customer
                   </p>
                 )}
-                <p>{selectedCustomer?.address || "Address not provided"}</p>
-                <p>{selectedCustomer?.phoneNumber || "Phone not provided"}</p>
+                <p className="text-zinc-700">
+                  {selectedCustomer?.address || "Address not provided"}
+                </p>
+                <p className="text-zinc-700">
+                  {selectedCustomer?.phoneNumber || "Phone not provided"}
+                </p>
               </div>
             </section>
 
-            <section className="mt-5">
-              <table className="w-full border-collapse text-xs">
+            <section className="mb-6">
+              <table className="w-full border-collapse">
                 <thead>
-                  <tr className="bg-zinc-100 text-left uppercase">
-                    <th className="px-2 py-2 font-semibold">Service</th>
-                    <th className="px-2 py-2 font-semibold">Qty</th>
-                    <th className="px-2 py-2 font-semibold">Unit Price</th>
-                    <th className="px-2 py-2 font-semibold">Line Total</th>
+                  <tr className="bg-zinc-900 text-white text-[10px]">
+                    <th className="px-3 py-2 text-left font-bold">Service</th>
+                    <th className="px-3 py-2 text-right font-bold">Price</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -444,16 +449,12 @@ export function InvoicePreviewCard({
                       return (
                         <tr
                           key={`${row.serviceId}-${index}`}
-                          className="border-b border-zinc-200"
+                          className="border-b border-zinc-300 hover:bg-zinc-50"
                         >
-                          <td className="px-2 py-2">
+                          <td className="px-3 py-2.5 text-left text-zinc-900">
                             {service?.name ?? row.serviceId}
                           </td>
-                          <td className="px-2 py-2">{row.quantity}</td>
-                          <td className="px-2 py-2">
-                            {formatCurrency(row.unitPrice)}
-                          </td>
-                          <td className="px-2 py-2">
+                          <td className="px-3 py-2.5 text-right font-semibold text-zinc-900">
                             {formatCurrency(lineTotal)}
                           </td>
                         </tr>
@@ -462,8 +463,8 @@ export function InvoicePreviewCard({
                   ) : (
                     <tr>
                       <td
-                        colSpan={4}
-                        className="border-b border-zinc-200 px-2 py-3 text-zinc-500"
+                        colSpan={2}
+                        className="border-b border-zinc-300 px-3 py-3 text-center text-zinc-500"
                       >
                         No items selected.
                       </td>
@@ -473,41 +474,53 @@ export function InvoicePreviewCard({
               </table>
             </section>
 
-            <section className="mt-4 ml-auto w-52 text-xs">
-              <div className="flex items-center justify-between py-1">
-                <span>Subtotal</span>
-                <span>{formatCurrency(totals.subtotal)}</span>
-              </div>
-              <div className="flex items-center justify-between py-1">
-                <span>Discount</span>
-                <span>
-                  -{formatCurrency(totals.discount)} ({totals.discountPercent}%)
+            <section className="ml-auto w-60 text-[10px] space-y-1 border-t-2 border-zinc-900 pt-3">
+              <div className="flex items-center justify-between">
+                <span className="text-zinc-700">Subtotal</span>
+                <span className="font-semibold text-zinc-900">
+                  {formatCurrency(totals.subtotal)}
                 </span>
               </div>
-              <div className="flex items-center justify-between py-1">
-                <span>VAT</span>
-                <span>
-                  {formatCurrency(totals.vat)} ({totals.vatPercent}%)
+              {totals.discountPercent > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-700">
+                    Discount ({totals.discountPercent}%)
+                  </span>
+                  <span className="font-semibold text-red-600">
+                    -{formatCurrency(totals.discount)}
+                  </span>
+                </div>
+              )}
+              {totals.vatPercent > 0 && (
+                <div className="flex items-center justify-between">
+                  <span className="text-zinc-700">
+                    VAT ({totals.vatPercent}%)
+                  </span>
+                  <span className="font-semibold text-zinc-900">
+                    {formatCurrency(totals.vat)}
+                  </span>
+                </div>
+              )}
+              <div className="mt-2 flex items-center justify-between border-t border-zinc-900 pt-2 text-sm">
+                <span className="font-bold text-zinc-900">TOTAL</span>
+                <span className="font-bold text-zinc-900 text-lg">
+                  {formatCurrency(totals.grandTotal)}
                 </span>
-              </div>
-              <div className="mt-1 flex items-center justify-between border-t border-zinc-300 pt-2 text-sm font-semibold text-zinc-900">
-                <span>Grand Total</span>
-                <span>{formatCurrency(totals.grandTotal)}</span>
               </div>
             </section>
 
             {note.trim() && (
-              <section className="mt-5 text-xs">
-                <p className="font-semibold tracking-wide text-zinc-600 uppercase">
+              <section className="mt-6 text-[10px]">
+                <p className="font-bold tracking-wide text-zinc-900 uppercase mb-2 border-b border-zinc-400 pb-1">
                   Notes
                 </p>
-                <p className="mt-1 min-h-10 rounded-md border border-zinc-200 bg-zinc-50 px-2 py-2 text-zinc-700">
+                <p className="mt-1 min-h-8 rounded-md border border-zinc-300 bg-zinc-50 px-2 py-2 text-zinc-700">
                   {note.trim()}
                 </p>
               </section>
             )}
 
-            <footer className="mt-6 border-t border-zinc-200 pt-3 text-center text-[10px] text-zinc-500">
+            <footer className="mt-6 border-t-2 border-zinc-900 pt-3 text-center text-[9px] text-zinc-600 font-medium">
               Thank you for your business.
             </footer>
           </article>
