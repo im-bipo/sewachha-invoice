@@ -553,7 +553,10 @@ export async function updateInvoiceAction(
   formData: FormData,
 ): Promise<ActionResult> {
   try {
-    await ensureAllowedRoles(["admin"], "Only admins can edit invoices");
+    await ensureAllowedRoles(
+      ["admin", "staff"],
+      "Only admins and staff can edit invoices",
+    );
     const currentUser = await ensureCurrentDbUser();
 
     const base = invoiceBaseSchema.parse({

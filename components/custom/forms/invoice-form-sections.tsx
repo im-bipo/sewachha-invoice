@@ -411,11 +411,11 @@ export function InvoicePreviewCard({
                   From
                 </p>
                 <p className="font-bold text-zinc-900 mt-1">
-                  Sewachha Invoice Pvt. Ltd.
+                  Sewachha Pvt. Ltd.
                 </p>
-                <p className="text-zinc-700">Kathmandu, Nepal</p>
-                <p className="text-zinc-700">+977-01-XXXXXXX</p>
-                <p className="text-zinc-700">billing@sewachhainvoice.com</p>
+                <p className="text-zinc-700">Butwal, Nepal</p>
+                <p className="text-zinc-700">+977-01-12345690</p>
+                <p className="text-zinc-700">billing@sewachha.com</p>
               </div>
 
               <div>

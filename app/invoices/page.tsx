@@ -74,7 +74,12 @@ export default async function InvoicesPage() {
                 >
                   <td className="border-b border-border/60 px-4 py-3 font-medium text-foreground">
                     {isStaff ? (
-                      invoice.invoiceId
+                      <Link
+                        href={`/invoices/${invoice.invoiceId}`}
+                        className="underline-offset-4 hover:underline"
+                      >
+                        {invoice.invoiceId}
+                      </Link>
                     ) : (
                       <Link
                         href={`/invoices/${invoice.invoiceId}`}
@@ -107,7 +112,7 @@ export default async function InvoicesPage() {
                       <div className="flex gap-2">
                         <Link href={`/invoices/${invoice.invoiceId}`}>
                           <Button variant="outline" size="xs">
-                            View
+                            Edit
                           </Button>
                         </Link>
                       </div>

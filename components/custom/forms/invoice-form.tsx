@@ -37,6 +37,7 @@ type InvoiceFormProps = {
   customers: CustomerOption[];
   services: ServiceOption[];
   readOnly?: boolean;
+  canDelete?: boolean;
 };
 
 function createEmptyRow(): ItemRow {
@@ -60,6 +61,7 @@ export function InvoiceForm({
   customers,
   services,
   readOnly = false,
+  canDelete = true,
 }: InvoiceFormProps) {
   const router = useRouter();
 
@@ -333,11 +335,16 @@ export function InvoiceForm({
                     <Printer className="size-4" />
                     Print Invoice
                   </Button>
-                  <DeleteActionButton
-                    confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
-                    onDelete={deleteInvoiceAction.bind(null, invoice.invoiceId)}
-                    onSuccess={() => router.push("/invoices")}
-                  />
+                  {canDelete && (
+                    <DeleteActionButton
+                      confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
+                      onDelete={deleteInvoiceAction.bind(
+                        null,
+                        invoice.invoiceId,
+                      )}
+                      onSuccess={() => router.push("/invoices")}
+                    />
+                  )}
                 </>
               )}
             </div>
