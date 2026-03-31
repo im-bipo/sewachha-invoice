@@ -366,7 +366,18 @@ export function InvoicePreviewCard({
 
       <div id="invoice-print-document" className="hidden print:block">
         <div id="invoice-print-page-container">
-          <article className="invoice-print-page aspect-210/297 w-full bg-white p-8 text-[10px] leading-relaxed text-zinc-800 shadow-[0_16px_40px_rgba(2,14,8,0.14)]">
+          <article className="invoice-print-page aspect-210/297 w-full bg-white p-8 text-[10px] leading-relaxed text-zinc-800 shadow-[0_16px_40px_rgba(2,14,8,0.14)] relative">
+            {/* Watermark */}
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <Image
+                src="/sewachha.png"
+                alt="Sewachha Watermark"
+                width={300}
+                height={300}
+                className="opacity-5"
+                priority
+              />
+            </div>
             <header className="flex items-start justify-between border-b-2 border-zinc-900 pb-5 mb-6">
               <div>
                 <p className="text-[9px] font-bold tracking-[0.15em] text-zinc-700 uppercase">

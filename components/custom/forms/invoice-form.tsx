@@ -339,6 +339,11 @@ export function InvoiceForm({
             break-after: auto;
             page-break-after: auto;
           }
+
+          .invoice-print-page img {
+            max-width: 100%;
+            height: auto;
+          }
         }
       `}</style>
     </form>
