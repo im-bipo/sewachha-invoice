@@ -91,7 +91,8 @@ export default async function CustomerDetailPage({
                 </tr>
               </thead>
               <tbody>
-                {customer.invoices.map((invoice) => (
+                {customer.invoices.map(
+                  (invoice: (typeof customer.invoices)[number]) => (
                   <tr
                     key={invoice.invoiceId}
                     className="text-sm hover:bg-muted/30"
