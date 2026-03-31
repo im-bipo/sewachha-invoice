@@ -3,6 +3,7 @@ import { UserButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
 import { FileText } from "lucide-react";
 import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
+import { MobileNav } from "@/components/custom/mobile-nav";
 
 type NavKey = "overview" | "customers" | "services" | "invoices";
 
@@ -55,7 +56,7 @@ export async function AdminShell({ active, children }: AdminShellProps) {
   return (
     <div className="min-h-screen bg-[radial-gradient(circle_at_top_right,rgba(0,166,81,0.12),transparent_44%),linear-gradient(to_bottom,#f8fcf9,#f3f7f5)] pb-10">
       <header className="sticky top-0 z-40 border-b border-border/70 bg-white/90 backdrop-blur-md">
-        <div className="container flex h-16 items-center justify-between gap-4">
+        <div className="container relative flex h-16 items-center justify-between gap-4">
           <Link href={homeHref} className="flex items-center gap-3">
             <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
               <FileText className="size-5" />
@@ -90,14 +91,17 @@ export async function AdminShell({ active, children }: AdminShellProps) {
             })}
           </nav>
 
-          <UserButton
-            appearance={{
-              elements: {
-                avatarBox:
-                  "h-9 w-9 rounded-full border border-border bg-white shadow-sm",
-              },
-            }}
-          />
+          <div className="flex items-center gap-2">
+            <MobileNav items={visibleNavItems} activeKey={active} />
+            <UserButton
+              appearance={{
+                elements: {
+                  avatarBox:
+                    "h-9 w-9 rounded-full border border-border bg-white shadow-sm",
+                },
+              }}
+            />
+          </div>
         </div>
       </header>
 

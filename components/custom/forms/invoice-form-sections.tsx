@@ -42,21 +42,23 @@ export function BasicInfoSection({
 }: BasicInfoSectionProps) {
   return (
     <section className={formCardClass}>
-      <h2 className="text-xl font-semibold text-foreground">Basic info</h2>
-      <div className="mt-4 grid gap-4 sm:grid-cols-2">
+      <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+        Basic info
+      </h2>
+      <div className="mt-4 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-xs sm:text-sm font-medium text-foreground">
             Invoice ID
           </span>
           <input
             readOnly
             value={invoiceId ?? "Auto generated on save"}
-            className="h-10 w-full rounded-lg border border-border bg-muted px-3 text-sm text-muted-foreground"
+            className="h-9 sm:h-10 w-full rounded-lg border border-border bg-muted px-2 sm:px-3 text-xs sm:text-sm text-muted-foreground"
           />
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-xs sm:text-sm font-medium text-foreground">
             Invoice date
           </span>
           <input
@@ -64,12 +66,14 @@ export function BasicInfoSection({
             type="date"
             value={invoiceDate}
             onChange={(event) => onInvoiceDateChange(event.target.value)}
-            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            className="h-9 sm:h-10 w-full rounded-lg border border-border bg-background px-2 sm:px-3 text-xs sm:text-sm text-foreground"
           />
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">Customer</span>
+          <span className="text-xs sm:text-sm font-medium text-foreground">
+            Customer
+          </span>
           <SearchableSelect
             name="customerId"
             value={customerId}
@@ -80,14 +84,16 @@ export function BasicInfoSection({
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">Status</span>
+          <span className="text-xs sm:text-sm font-medium text-foreground">
+            Status
+          </span>
           <select
             name="status"
             value={status}
             onChange={(event) =>
               onStatusChange(event.target.value as InvoiceStatus)
             }
-            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            className="h-9 sm:h-10 w-full rounded-lg border border-border bg-background px-2 sm:px-3 text-xs sm:text-sm text-foreground"
           >
             {statusOptions.map((option) => (
               <option key={option.value} value={option.value}>
@@ -120,19 +126,29 @@ export function InvoiceItemsSection({
 }: InvoiceItemsSectionProps) {
   return (
     <section className={formCardClass}>
-      <h2 className="text-xl font-semibold text-foreground">Invoice items</h2>
-      <p className="mt-1 text-sm text-muted-foreground">
+      <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+        Invoice items
+      </h2>
+      <p className="mt-1 text-xs sm:text-sm text-muted-foreground">
         Service auto-fills rate. Quantity defaults to 1.
       </p>
-      <div className="mt-4 overflow-x-auto">
-        <table className="w-full min-w-160 border-separate border-spacing-0">
+      <div className="mt-4 overflow-x-auto -mx-5 sm:-mx-6 px-5 sm:px-6">
+        <table className="w-full border-separate border-spacing-0">
           <thead>
             <tr className="text-left text-xs tracking-[0.16em] text-muted-foreground uppercase">
-              <th className="border-b border-border/70 px-3 py-2">Service</th>
-              <th className="border-b border-border/70 px-3 py-2">Qty</th>
-              <th className="border-b border-border/70 px-3 py-2">Rate</th>
-              <th className="border-b border-border/70 px-3 py-2">Total</th>
-              <th className="border-b border-border/70 px-3 py-2 text-right">
+              <th className="border-b border-border/70 px-2 sm:px-3 py-2">
+                Service
+              </th>
+              <th className="border-b border-border/70 px-2 sm:px-3 py-2">
+                Qty
+              </th>
+              <th className="border-b border-border/70 px-2 sm:px-3 py-2">
+                Rate
+              </th>
+              <th className="border-b border-border/70 px-2 sm:px-3 py-2">
+                Total
+              </th>
+              <th className="border-b border-border/70 px-2 sm:px-3 py-2 text-right">
                 Action
               </th>
             </tr>
@@ -144,7 +160,7 @@ export function InvoiceItemsSection({
 
               return (
                 <tr key={index}>
-                  <td className="border-b border-border/60 px-3 py-2">
+                  <td className="border-b border-border/60 px-2 sm:px-3 py-2">
                     <SearchableSelect
                       name={`items.${index}.serviceId`}
                       value={item.serviceId}
@@ -156,7 +172,7 @@ export function InvoiceItemsSection({
                       compact
                     />
                   </td>
-                  <td className="border-b border-border/60 px-3 py-2">
+                  <td className="border-b border-border/60 px-2 sm:px-3 py-2">
                     <input
                       name={`items.${index}.quantity`}
                       type="number"
@@ -165,11 +181,11 @@ export function InvoiceItemsSection({
                       onChange={(event) =>
                         onQuantityChange(index, event.target.value)
                       }
-                      className="h-9 w-20 rounded-lg border border-border bg-background px-2 text-sm"
+                      className="h-8 sm:h-9 w-16 sm:w-20 rounded-lg border border-border bg-background px-2 text-xs sm:text-sm"
                     />
                   </td>
-                  <td className="border-b border-border/60 px-3 py-2">
-                    <p className="h-9 w-28 px-2 text-sm leading-9 text-foreground">
+                  <td className="border-b border-border/60 px-2 sm:px-3 py-2">
+                    <p className="h-8 sm:h-9 px-2 text-xs sm:text-sm leading-8 sm:leading-9 text-foreground">
                       {formatCurrency(item.unitPrice)}
                     </p>
                     <input
@@ -178,8 +194,8 @@ export function InvoiceItemsSection({
                       value={item.unitPrice}
                     />
                   </td>
-                  <td className="border-b border-border/60 px-3 py-2">
-                    <p className="h-9 w-32 px-2 text-sm leading-9 text-foreground">
+                  <td className="border-b border-border/60 px-2 sm:px-3 py-2">
+                    <p className="h-8 sm:h-9 px-2 text-xs sm:text-sm leading-8 sm:leading-9 text-foreground">
                       {formatCurrency(lineTotal)}
                     </p>
                     <input
@@ -193,7 +209,7 @@ export function InvoiceItemsSection({
                       value={item.vat}
                     />
                   </td>
-                  <td className="border-b border-border/60 px-3 py-2 text-right">
+                  <td className="border-b border-border/60 px-2 sm:px-3 py-2 text-right">
                     <Button
                       type="button"
                       variant="ghost"
@@ -213,9 +229,14 @@ export function InvoiceItemsSection({
       </div>
 
       <div className="mt-3">
-        <Button type="button" variant="outline" onClick={onAddRow}>
-          <Plus />
-          Add
+        <Button
+          type="button"
+          variant="outline"
+          onClick={onAddRow}
+          className="w-full sm:w-auto"
+        >
+          <Plus className="size-4" />
+          Add Item
         </Button>
       </div>
     </section>
@@ -237,12 +258,12 @@ export function DiscountVatSection({
 }: DiscountVatSectionProps) {
   return (
     <section className={formCardClass}>
-      <h2 className="text-xl font-semibold text-foreground">
+      <h2 className="text-lg sm:text-xl font-semibold text-foreground">
         Discount and VAT
       </h2>
-      <div className="mt-3 grid gap-4 sm:grid-cols-2">
+      <div className="mt-3 grid gap-3 sm:gap-4 grid-cols-1 sm:grid-cols-2">
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">
+          <span className="text-xs sm:text-sm font-medium text-foreground">
             Discount (%)
           </span>
           <input
@@ -259,12 +280,14 @@ export function DiscountVatSection({
                 : 0;
               onDiscountChange(normalized);
             }}
-            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            className="h-9 sm:h-10 w-full rounded-lg border border-border bg-background px-2 sm:px-3 text-xs sm:text-sm text-foreground"
           />
         </label>
 
         <label className="space-y-1.5">
-          <span className="text-sm font-medium text-foreground">VAT (%)</span>
+          <span className="text-xs sm:text-sm font-medium text-foreground">
+            VAT (%)
+          </span>
           <input
             name="vat"
             type="number"
@@ -279,7 +302,7 @@ export function DiscountVatSection({
                 : 0;
               onVatChange(normalized);
             }}
-            className="h-10 w-full rounded-lg border border-border bg-background px-3 text-sm text-foreground"
+            className="h-9 sm:h-10 w-full rounded-lg border border-border bg-background px-2 sm:px-3 text-xs sm:text-sm text-foreground"
           />
         </label>
       </div>
@@ -295,13 +318,15 @@ type NotesSectionProps = {
 export function NotesSection({ note, onNoteChange }: NotesSectionProps) {
   return (
     <section className={formCardClass}>
-      <h2 className="text-xl font-semibold text-foreground">Notes</h2>
+      <h2 className="text-lg sm:text-xl font-semibold text-foreground">
+        Notes
+      </h2>
       <textarea
         name="note"
         value={note}
         onChange={(event) => onNoteChange(event.target.value)}
         rows={4}
-        className="mt-4 w-full rounded-xl border border-border bg-background px-3 py-2 text-sm text-foreground"
+        className="mt-4 w-full rounded-xl border border-border bg-background px-2 sm:px-3 py-2 text-xs sm:text-sm text-foreground"
         placeholder="Add remarks for this invoice"
       />
     </section>

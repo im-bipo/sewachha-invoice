@@ -251,13 +251,17 @@ export function InvoiceForm({
           <NotesSection note={note} onNoteChange={setNote} />
 
           {!readOnly && (
-            <div className="flex flex-wrap items-center gap-3">
+            <div className="flex flex-col gap-2 sm:flex-row sm:items-center sm:gap-3">
               <FormSubmitButton
                 idleText={mode === "add" ? "Create Invoice" : "Save Invoice"}
                 pendingText={mode === "add" ? "Creating..." : "Updating..."}
               />
-              <Link href="/invoices">
-                <Button type="button" variant="outline">
+              <Link href="/invoices" className="w-full sm:w-auto">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
               </Link>
