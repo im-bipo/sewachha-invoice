@@ -1,7 +1,7 @@
 import Link from "next/link";
+import Image from "next/image";
 import { UserButton } from "@clerk/nextjs";
 import { redirect } from "next/navigation";
-import { FileText } from "lucide-react";
 import { getCurrentDashboardRole } from "@/lib/server/admin-auth";
 import { MobileNav } from "@/components/custom/mobile-nav";
 
@@ -58,8 +58,15 @@ export async function AdminShell({ active, children }: AdminShellProps) {
       <header className="sticky top-0 z-40 border-b border-border/70 bg-white/90 backdrop-blur-md">
         <div className="container relative flex h-16 items-center justify-between gap-4">
           <Link href={homeHref} className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <FileText className="size-5" />
+            <div className="relative flex h-11 w-11 items-center justify-center overflow-hidden ">
+              <Image
+                src="/sewachha.png"
+                alt="Sewachha logo"
+                fill
+                sizes="44px"
+                className="object-contain p-1"
+                priority
+              />
             </div>
             <div>
               <p className="text-sm font-semibold leading-none text-foreground">
