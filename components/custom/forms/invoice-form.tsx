@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { Printer } from "lucide-react";
 import { useActionState, useEffect, useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -173,6 +174,60 @@ export function InvoiceForm({
     };
   }, [previewRows, discount, vat]);
 
+  const hasUnsavedChanges = useMemo(() => {
+    if (mode !== "edit" || !invoice) {
+      return false;
+    }
+
+    const invoiceRows = invoice.items.length
+      ? invoice.items.map((item) => ({
+          serviceId: item.serviceId,
+          quantity: item.quantity || 1,
+          unitPrice: item.unitPrice || 0,
+          discount: item.discount || 0,
+          vat: item.vat || 0,
+        }))
+      : [createEmptyRow()];
+
+    if (
+      customerId !== invoice.customerId ||
+      invoiceDate !== invoice.invoiceDate ||
+      status !== invoice.status ||
+      note !== (invoice.note ?? "") ||
+      discount !== (invoice.discount ?? 0) ||
+      vat !== (invoice.vat ?? 0)
+    ) {
+      return true;
+    }
+
+    if (rows.length !== invoiceRows.length) {
+      return true;
+    }
+
+    return rows.some((row, index) => {
+      const original = invoiceRows[index];
+      return (
+        row.serviceId !== original.serviceId ||
+        row.quantity !== original.quantity ||
+        row.unitPrice !== original.unitPrice ||
+        row.discount !== original.discount ||
+        row.vat !== original.vat
+      );
+    });
+  }, [
+    mode,
+    invoice,
+    customerId,
+    invoiceDate,
+    status,
+    note,
+    discount,
+    vat,
+    rows,
+  ]);
+
+  const canPrintInvoice = mode === "edit" && !!invoice && !hasUnsavedChanges;
+
   function handleServiceChange(rowIndex: number, serviceId: string) {
     setRows((prev) => {
       const next = [...prev];
@@ -208,12 +263,14 @@ export function InvoiceForm({
       <div className="space-y-4">
         <fieldset disabled={readOnly} className="space-y-4 print:hidden">
           <BasicInfoSection
+            mode={mode}
             invoiceId={invoice?.invoiceId}
             invoiceDate={invoiceDate}
             onInvoiceDateChange={setInvoiceDate}
             customerId={customerId}
             onCustomerChange={setCustomerId}
             customerOptions={customerOptions}
+            selectedCustomer={selectedCustomer}
             status={status}
             onStatusChange={setStatus}
           />
@@ -251,11 +308,37 @@ export function InvoiceForm({
                 </Button>
               </Link>
               {mode === "edit" && invoice && (
-                <DeleteActionButton
-                  confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
-                  onDelete={deleteInvoiceAction.bind(null, invoice.invoiceId)}
-                  onSuccess={() => router.push("/invoices")}
-                />
+                <>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="w-full sm:w-auto"
+                    onClick={() => {
+                      const originalTitle = document.title;
+                      if (selectedCustomer && invoice.invoiceId) {
+                        document.title = `${selectedCustomer.name} - ${selectedCustomer.customerId} - ${invoice.invoiceId}`;
+                      }
+                      window.print();
+                      setTimeout(() => {
+                        document.title = originalTitle;
+                      }, 100);
+                    }}
+                    disabled={!canPrintInvoice}
+                    title={
+                      hasUnsavedChanges
+                        ? "Save changes before printing"
+                        : "Print Invoice"
+                    }
+                  >
+                    <Printer className="size-4" />
+                    Print Invoice
+                  </Button>
+                  <DeleteActionButton
+                    confirmMessage={`Delete invoice ${invoice.invoiceId}?`}
+                    onDelete={deleteInvoiceAction.bind(null, invoice.invoiceId)}
+                    onSuccess={() => router.push("/invoices")}
+                  />
+                </>
               )}
             </div>
           )}
@@ -278,8 +361,6 @@ export function InvoiceForm({
             serviceMap={serviceMap}
             totals={totals}
             note={note}
-            customerName={selectedCustomer?.name}
-            customerId={selectedCustomer?.customerId}
           />
         )}
       </div>

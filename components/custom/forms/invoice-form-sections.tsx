@@ -1,6 +1,7 @@
 "use client";
 
 import Image from "next/image";
+import Link from "next/link";
 import { Plus, Printer, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import {
@@ -20,23 +21,27 @@ const formCardClass =
   "rounded-3xl border border-border/70 bg-white p-5 shadow-[0_1px_0_rgba(16,54,29,0.03),0_10px_26px_rgba(16,54,29,0.06)] sm:p-6";
 
 type BasicInfoSectionProps = {
+  mode: "add" | "edit";
   invoiceId?: string;
   invoiceDate: string;
   onInvoiceDateChange: (value: string) => void;
   customerId: string;
   onCustomerChange: (value: string) => void;
   customerOptions: SelectOption[];
+  selectedCustomer?: CustomerOption;
   status: InvoiceStatus;
   onStatusChange: (value: InvoiceStatus) => void;
 };
 
 export function BasicInfoSection({
+  mode,
   invoiceId,
   invoiceDate,
   onInvoiceDateChange,
   customerId,
   onCustomerChange,
   customerOptions,
+  selectedCustomer,
   status,
   onStatusChange,
 }: BasicInfoSectionProps) {
@@ -74,13 +79,25 @@ export function BasicInfoSection({
           <span className="text-xs sm:text-sm font-medium text-foreground">
             Customer
           </span>
-          <SearchableSelect
-            name="customerId"
-            value={customerId}
-            onChange={onCustomerChange}
-            options={customerOptions}
-            placeholder="Select customer"
-          />
+          {mode === "edit" && selectedCustomer ? (
+            <>
+              <input type="hidden" name="customerId" value={customerId} />
+              <Link
+                href={`/customers/${selectedCustomer.customerId}`}
+                className="flex h-9 sm:h-10 w-full items-center rounded-lg border border-border bg-muted px-2 sm:px-3 text-xs sm:text-sm text-foreground hover:bg-muted/80 transition-colors"
+              >
+                {selectedCustomer.name} ({selectedCustomer.customerId})
+              </Link>
+            </>
+          ) : (
+            <SearchableSelect
+              name="customerId"
+              value={customerId}
+              onChange={onCustomerChange}
+              options={customerOptions}
+              placeholder="Select customer"
+            />
+          )}
         </label>
 
         <label className="space-y-1.5">
@@ -251,7 +268,7 @@ export function DiscountVatSection({
             type="number"
             min={0}
             max={100}
-            step={1}
+            step={0.01}
             value={discount}
             onChange={(event) => {
               const value = Number(event.target.value);
@@ -273,7 +290,7 @@ export function DiscountVatSection({
             type="number"
             min={0}
             max={100}
-            step={1}
+            step={0.01}
             value={vat}
             onChange={(event) => {
               const value = Number(event.target.value);
@@ -322,8 +339,6 @@ type InvoicePreviewCardProps = {
   serviceMap: Map<string, ServiceOption>;
   totals: InvoiceTotals;
   note: string;
-  customerName?: string;
-  customerId?: string;
 };
 
 export function InvoicePreviewCard({
@@ -335,35 +350,12 @@ export function InvoicePreviewCard({
   serviceMap,
   totals,
   note,
-  customerName,
-  customerId,
 }: InvoicePreviewCardProps) {
   const shouldShowPaymentPage = status === "PENDING" || status === "OVERDUE";
-
-  const handlePrint = () => {
-    // Set document title to use as PDF filename
-    const originalTitle = document.title;
-    if (customerName && customerId && invoiceId) {
-      document.title = `${customerName} - ${customerId} - ${invoiceId}`;
-    }
-
-    window.print();
-
-    // Restore original title after a short delay
-    setTimeout(() => {
-      document.title = originalTitle;
-    }, 100);
-  };
+  const isPaidStatus = status === "PAID";
 
   return (
     <>
-      <div className="print:hidden">
-        <Button type="button" variant="outline" onClick={handlePrint}>
-          <Printer />
-          Print Invoice
-        </Button>
-      </div>
-
       <div id="invoice-print-document" className="hidden print:block">
         <div id="invoice-print-page-container">
           <article className="invoice-print-page aspect-210/297 w-full bg-white p-8 text-[10px] leading-relaxed text-zinc-800 shadow-[0_16px_40px_rgba(2,14,8,0.14)] relative">
@@ -380,8 +372,8 @@ export function InvoicePreviewCard({
             </div>
             <header className="flex items-start justify-between border-b-2 border-zinc-900 pb-5 mb-6">
               <div>
-                <p className="text-[9px] font-bold tracking-[0.15em] text-zinc-700 uppercase">
-                  Sewachha Invoice
+                <p className="text-[9px] font-bold tracking-[0.15em] text-primary uppercase">
+                  Sewachha
                 </p>
                 <h4 className="mt-2 text-3xl font-bold text-zinc-900">
                   INVOICE
@@ -400,7 +392,13 @@ export function InvoicePreviewCard({
                 </p>
                 <p>
                   <span className="font-bold text-zinc-900">Status:</span>{" "}
-                  <span className="px-2 py-0.5 bg-zinc-200 rounded text-zinc-900 font-semibold">
+                  <span
+                    className={`px-2 py-0.5 rounded font-semibold ${
+                      isPaidStatus
+                        ? "bg-emerald-100 text-emerald-700"
+                        : "bg-rose-100 text-rose-700"
+                    }`}
+                  >
                     {statusToLabel(status)}
                   </span>
                 </p>
@@ -522,10 +520,7 @@ export function InvoicePreviewCard({
 
             {note.trim() && (
               <section className="mt-6 text-[10px]">
-                <p className="font-bold tracking-wide text-zinc-900 uppercase mb-2 border-b border-zinc-400 pb-1">
-                  Notes
-                </p>
-                <p className="mt-1 min-h-8 rounded-md border border-zinc-300 bg-zinc-50 px-2 py-2 text-zinc-700">
+                <p className="mt-1 min-h-8 px-2 py-2 text-zinc-700">
                   {note.trim()}
                 </p>
               </section>
